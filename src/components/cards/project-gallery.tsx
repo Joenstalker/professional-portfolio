@@ -52,26 +52,26 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
         </VisuallyHidden>
         
         {/* Top Controls */}
-        <div className="absolute top-4 right-4 sm:top-8 sm:right-8 z-[210] flex items-center space-x-4">
+        <div className="absolute top-4 right-4 sm:top-8 sm:right-8 z-[210] flex items-center space-x-2 sm:space-x-4">
           {!isVideo(images[currentIndex]) && (
             <button 
               onClick={toggleZoom} 
-              className="p-3 sm:p-4 rounded-full bg-white/5 hover:bg-white/20 text-white backdrop-blur-xl transition-all border border-white/20 shadow-2xl"
+              className="p-2.5 sm:p-4 rounded-full bg-black/40 sm:bg-white/5 hover:bg-white/20 text-white backdrop-blur-xl transition-all border border-white/10 sm:border-white/20 shadow-2xl"
               title={isZoomed ? "Zoom Out" : "Zoom In"}
             >
               {isZoomed ? (
-                <ZoomOut className="w-6 h-6 sm:w-8 sm:h-8" />
+                <ZoomOut className="w-5 h-5 sm:w-8 sm:h-8" />
               ) : (
-                <ZoomIn className="w-6 h-6 sm:w-8 sm:h-8" />
+                <ZoomIn className="w-5 h-5 sm:w-8 sm:h-8" />
               )}
             </button>
           )}
           
           <button 
             onClick={onClose} 
-            className="p-3 sm:p-4 rounded-full bg-white/5 hover:bg-white/20 text-white backdrop-blur-xl transition-all border border-white/20 group shadow-2xl"
+            className="p-2.5 sm:p-4 rounded-full bg-black/40 sm:bg-white/5 hover:bg-white/20 text-white backdrop-blur-xl transition-all border border-white/10 sm:border-white/20 group shadow-2xl"
           >
-            <X className="w-6 h-6 sm:w-8 sm:h-8 group-hover:rotate-90 transition-transform duration-300" />
+            <X className="w-5 h-5 sm:w-8 sm:h-8 group-hover:rotate-90 transition-transform duration-300" />
           </button>
         </div>
 
@@ -79,7 +79,7 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
         <div 
           className={cn(
             "relative flex-1 transition-all duration-300 flex justify-center",
-            isZoomed ? "overflow-y-auto overflow-x-hidden items-start" : "overflow-hidden items-center p-4 sm:p-8 lg:p-12 mt-16 mb-32"
+            isZoomed ? "overflow-y-auto overflow-x-hidden items-start" : "overflow-hidden items-center p-2 sm:p-12 mt-12 sm:mt-16 mb-24 sm:mb-32"
           )}
           onClick={() => isZoomed && setIsZoomed(false)}
         >
@@ -92,7 +92,7 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
               transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
               className={cn(
                 "relative flex justify-center transition-all duration-300",
-                isZoomed ? "w-full py-24 min-h-screen" : "w-full h-full items-center"
+                isZoomed ? "w-full py-20 sm:py-24 min-h-screen" : "w-full h-full items-center"
               )}
             >
               {isVideo(images[currentIndex]) ? (
@@ -110,7 +110,7 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
                   className={cn(
                     "drop-shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-300",
                     isZoomed 
-                      ? "max-w-[95%] sm:max-w-[80%] h-auto cursor-zoom-out" 
+                      ? "max-w-[100%] sm:max-w-[85%] h-auto cursor-zoom-out" 
                       : "max-w-full max-h-full w-auto h-auto object-contain cursor-zoom-in"
                   )}
                 />
@@ -123,36 +123,36 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
             <>
               <button
                 onClick={handlePrev}
-                className="absolute left-2 sm:left-6 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-sky-500 hover:scale-110 transition-all backdrop-blur-sm group z-[220]"
+                className="absolute left-1 sm:left-6 w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-black/20 sm:bg-white/5 border border-white/5 sm:border-white/10 flex items-center justify-center text-white hover:bg-sky-500 hover:scale-110 transition-all backdrop-blur-sm group z-[220]"
               >
-                <ChevronLeft className="w-8 h-8 sm:w-10 sm:h-10 group-active:-translate-x-1 transition-transform" />
+                <ChevronLeft className="w-5 h-5 sm:w-10 sm:h-10 group-active:-translate-x-1 transition-transform" />
               </button>
               
               <button
                 onClick={handleNext}
-                className="absolute right-2 sm:right-6 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-sky-500 hover:scale-110 transition-all backdrop-blur-sm group z-[220]"
+                className="absolute right-1 sm:right-6 w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-black/20 sm:bg-white/5 border border-white/5 sm:border-white/10 flex items-center justify-center text-white hover:bg-sky-500 hover:scale-110 transition-all backdrop-blur-sm group z-[220]"
               >
-                <ChevronRight className="w-8 h-8 sm:w-10 sm:h-10 group-active:translate-x-1 transition-transform" />
+                <ChevronRight className="w-5 h-5 sm:w-10 sm:h-10 group-active:translate-x-1 transition-transform" />
               </button>
             </>
           )}
         </div>
 
         {/* Bottom Info & Thumbnails */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto flex flex-col items-center space-y-4">
-            <div className="flex items-center space-x-4">
-               <h3 className="text-white/60 text-sm font-bold uppercase tracking-[0.2em]">{projectTitle}</h3>
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-t from-black/80 to-transparent backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto flex flex-col items-center space-y-3 sm:space-y-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+               <h3 className="text-white/60 text-[10px] sm:text-sm font-bold uppercase tracking-[0.2em] line-clamp-1">{projectTitle}</h3>
                <div className="h-1 w-1 rounded-full bg-white/20" />
-               <span className="text-sky-400 font-mono text-sm">{currentIndex + 1} / {images.length}</span>
+               <span className="text-sky-400 font-mono text-[10px] sm:text-sm">{currentIndex + 1} / {images.length}</span>
             </div>
             
-            <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide max-w-full">
+            <div className="flex space-x-2 sm:space-x-3 overflow-x-auto pb-2 scrollbar-hide max-w-full px-4">
               {images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
-                  className={`relative flex-shrink-0 w-24 h-16 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
+                  className={`relative flex-shrink-0 w-16 h-10 sm:w-24 sm:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 transition-all duration-300 ${
                     idx === currentIndex 
                       ? "border-sky-500 scale-110 shadow-[0_0_20px_rgba(14,165,233,0.3)]" 
                       : "border-white/10 opacity-40 hover:opacity-100 hover:border-white/30"
@@ -160,7 +160,7 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
                 >
                   {isVideo(img) ? (
                     <div className="w-full h-full bg-accent/20 flex items-center justify-center">
-                      <Play className="w-6 h-6 text-sky-400 fill-sky-400" />
+                      <Play className="w-4 h-4 sm:w-6 sm:h-6 text-sky-400 fill-sky-400" />
                     </div>
                   ) : (
                     <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
