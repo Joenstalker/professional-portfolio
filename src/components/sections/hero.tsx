@@ -106,7 +106,7 @@ export function Hero() {
             <div className="relative z-10 w-[280px] h-[350px] sm:w-[400px] sm:h-[500px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-slate-900">
                <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent z-20" />
                <img 
-                   src="/profile.JPG" 
+                   src="/profile.png" 
                    alt="Joenil Acero" 
                    className="w-full h-full object-cover object-top"
                 />
