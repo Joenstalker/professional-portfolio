@@ -1,11 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { User, Code, Cpu, Layout, Briefcase, Award, Clock, Heart, Terminal, ExternalLink } from "lucide-react";
+import * as React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { User, Code, Cpu, Layout, Briefcase, Award, Clock, Heart, Terminal, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { skills } from "@/data/skills";
 
 export function About() {
+  const [isExpanded, setIsExpanded] = React.useState(false);
   const marqueeSkills = skills.filter(s => 
     ["Frontend", "Backend", "Database", "Tools", "IoT/Hardware", "Deployment"].includes(s.category)
   );
@@ -39,8 +41,46 @@ export function About() {
               I'm a passionate developer with experience in building web applications, desktop systems, and interactive games. 
               I love combining creativity and logic to develop systems that are not only functional but also meaningful.
             </p>
-            <Button className="bg-accent/50 hover:bg-accent text-foreground border border-border rounded-xl px-8 h-12">
-              More About Me <User className="ml-2 w-4 h-4" />
+
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-4 overflow-hidden"
+                >
+                  <div className="p-4 rounded-2xl bg-sky-500/5 border border-sky-500/10">
+                    <p className="text-muted-foreground leading-relaxed">
+                      Beyond my technical skills in software development, I am also a{" "}
+                      <a 
+                        href="/NC2.pdf" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sky-400 font-semibold text-sm hover:underline decoration-sky-400/30 underline-offset-4 transition-all"
+                      >
+                        Certified Electrical Installation and Maintenance NC2 (TESDA)
+                      </a>
+                      . This background gives me a unique perspective on the physical infrastructure that powers our digital world.
+                    </p>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed italic">
+                    "I have an insatiable curiosity for technology because it knows no limits. It is a field that is constantly evolving every day, and I am driven by the challenge of staying at the forefront of that evolution."
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <Button 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="bg-accent/50 hover:bg-accent text-foreground border border-border rounded-xl px-8 h-12 transition-all duration-300"
+            >
+              {isExpanded ? (
+                <>Show Less <ChevronUp className="ml-2 w-4 h-4" /></>
+              ) : (
+                <>More About Me <ChevronDown className="ml-2 w-4 h-4" /></>
+              )}
             </Button>
           </motion.div>
 
