@@ -241,4 +241,3 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
     </div>
   );
 }
-}
