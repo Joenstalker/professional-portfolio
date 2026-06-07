@@ -27,7 +27,7 @@ const TypewriterMessage = ({ content }: { content: string }) => {
       }, 5);
       return () => clearTimeout(timeout);
     }
-  }, [currentIndex, content]);
+}, [currentIndex, content]);
 
   return (
     <div className="whitespace-pre-wrap">
@@ -124,11 +124,11 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
   const ChatContent = (
     <div className={cn(
       "flex flex-col overflow-hidden h-full",
-      !inline && "mb-4 w-[calc(100vw-3rem)] sm:w-[400px] h-[500px] glass-dark border border-white/10 rounded-2xl shadow-2xl"
+      !inline && "mb-4 w-[calc(100vw-2rem)] sm:w-[400px] h-[500px] max-h-[calc(100dvh-120px)] glass-dark border border-white/10 rounded-2xl shadow-2xl"
     )}>
       {/* Header - only if floating */}
       {!inline && (
-        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-sky-500/10">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-sky-500/10 shrink-0">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center">
               <Bot className="w-5 h-5 text-white" />
@@ -138,7 +138,7 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
               <p className="text-[10px] text-sky-400 font-bold uppercase tracking-widest">AI Power</p>
             </div>
           </div>
-          <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors">
+          <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors p-2 -mr-2">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -173,7 +173,7 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
 
       {/* Quick Suggestions - Always visible for first message or when idle */}
       {messages.length === 1 && (
-         <div className="px-6 pb-4 flex flex-wrap gap-2 max-h-[120px] overflow-y-auto scrollbar-hide">
+         <div className="px-6 pb-4 flex flex-wrap gap-2 max-h-[120px] overflow-y-auto scrollbar-hide shrink-0">
             {[
               "Tell me about yourself.",
               "Introduce yourself in one minute.",
@@ -198,7 +198,7 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
       )}
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-4 bg-transparent flex space-x-2">
+      <form onSubmit={handleSubmit} className="p-4 bg-transparent flex space-x-2 shrink-0">
         <input
           type="text"
           value={input}
@@ -216,7 +216,7 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
   if (inline) return ChatContent;
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100]">
+    <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -229,13 +229,16 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
         )}
       </AnimatePresence>
 
-      <Button
-        onClick={() => setIsOpen(!isOpen)}
-        size="icon"
-        className="w-14 h-14 rounded-2xl shadow-2xl bg-sky-500 hover:bg-sky-600 transition-transform active:scale-95"
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
-      </Button>
+      {!isOpen && (
+        <Button
+          onClick={() => setIsOpen(true)}
+          size="icon"
+          className="w-14 h-14 rounded-2xl shadow-2xl bg-sky-500 hover:bg-sky-600 transition-transform active:scale-95"
+        >
+          <MessageSquare className="w-6 h-6" />
+        </Button>
+      )}
     </div>
   );
+}
 }
