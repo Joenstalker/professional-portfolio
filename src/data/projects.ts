@@ -133,7 +133,11 @@ export const projects: Project[] = [
       "/pos-projects/POS Success Message.png",
       "/pos-projects/POS Terminal.png",
       "/pos-projects/POS Transactions.png",
-      "/pos-projects/POS current order.png"
+      "/pos-projects/POS current order.png",
+      "/pos-projects/hanna-1.jpg",
+      "/pos-projects/hanna-2.png",
+      "/pos-projects/hanna-3.png",
+      "/pos-projects/hanna-4.png"
     ]
   }
 ];
