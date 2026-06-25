@@ -1,93 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { AIChatbot } from "@/components/chatbot/chatbot";
-import { Mail, Github, Linkedin, Facebook, Send, MapPin, Phone, Award, CheckCircle2 } from "lucide-react";
+import { Mail, Github, Linkedin, Facebook, MapPin, Phone, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CustomCaptcha, getVerificationStatus, captchaQuestion } from "@opentech-lab/custom-captcha";
 
 export default function ContactPage() {
-  const Captcha = CustomCaptcha as any;
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: ""
-  });
-  const [showCaptcha, setShowCaptcha] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
-
-  useEffect(() => {
-    // Check initial verification status on mount
-    setIsVerified(getVerificationStatus());
-  }, []);
-
-  // Poll for verification status when captcha is active
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (showCaptcha && !isVerified) {
-      interval = setInterval(() => {
-        const verified = getVerificationStatus();
-        if (verified) {
-          setIsVerified(true);
-          setShowCaptcha(false);
-          // If we were trying to submit, we could trigger it here
-        }
-      }, 500);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [showCaptcha, isVerified]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!isVerified) {
-      setShowCaptcha(true);
-      return;
-    }
-
-    setIsSubmitting(true);
-    // Simulate API call
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setSubmitStatus("success");
-      setFormData({ name: "", email: "", message: "" });
-      setTimeout(() => setSubmitStatus("idle"), 5000);
-    } catch (error) {
-      setSubmitStatus("error");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleEmailClick = () => {
+    // Open Gmail in a new tab with pre-filled recipient
+    const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=joenilpanal@gmail.com";
+    window.open(gmailUrl, "_blank");
   };
 
   return (
     <main className="min-h-screen bg-background selection:bg-sky-500/30">
       <Navbar />
-      
-      {/* Captcha Component */}
-      {showCaptcha && (
-        <div className="dark">
-          <Captcha 
-            config={{
-              questions: captchaQuestion as any,
-              title: "Security Verification",
-              questionsToSolve: 1,
-              zIndex: 99999
-            }}
-          />
-        </div>
-      )}
 
       <section className="pt-32 pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -203,84 +132,30 @@ export default function ContactPage() {
                </div>
             </motion.div>
 
-            {/* Form Column */}
+            {/* Email Button Column */}
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
               className="lg:col-span-1"
             >
-               <div className="bg-card border border-border rounded-3xl p-8 h-full">
-                  <form onSubmit={handleSubmit} className="space-y-6 h-full flex flex-col">
-                    <div className="space-y-2">
-                      <input 
-                        type="text" 
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                        placeholder="Your Name"
-                        className="w-full bg-accent/30 border border-border rounded-xl px-4 py-4 text-foreground focus:outline-none focus:border-sky-500/50 transition-all placeholder:text-muted-foreground"
-                      />
+               <div className="bg-card border border-border rounded-3xl p-8 h-full flex flex-col justify-center">
+                  <div className="text-center space-y-8">
+                    <div className="w-24 h-24 bg-sky-500/10 rounded-3xl flex items-center justify-center mx-auto">
+                      <Mail className="w-12 h-12 text-sky-400" />
                     </div>
-                    <div className="space-y-2">
-                      <input 
-                        type="email" 
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                        placeholder="Your Email"
-                        className="w-full bg-accent/30 border border-border rounded-xl px-4 py-4 text-foreground focus:outline-none focus:border-sky-500/50 transition-all placeholder:text-muted-foreground"
-                      />
+                    <div>
+                      <h3 className="text-2xl font-bold text-foreground mb-2">Send me an Email</h3>
+                      <p className="text-muted-foreground">Click the button below to compose an email in Gmail</p>
                     </div>
-                    <div className="space-y-2 flex-1">
-                      <textarea 
-                        name="message"
-                        value={formData.message}
-                        onChange={handleInputChange}
-                        required
-                        rows={6}
-                        placeholder="Your Message"
-                        className="w-full bg-accent/30 border border-border rounded-xl px-4 py-4 text-foreground focus:outline-none focus:border-sky-500/50 transition-all resize-none placeholder:text-muted-foreground h-full min-h-[150px]"
-                      />
-                    </div>
-                    
-                    <AnimatePresence mode="wait">
-                      {submitStatus === "success" ? (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          className="w-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl flex items-center justify-center space-x-2"
-                        >
-                          <CheckCircle2 className="w-5 h-5" />
-                          <span className="font-bold">Message sent successfully!</span>
-                        </motion.div>
-                      ) : (
-                        <Button 
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="w-full bg-sky-500 hover:bg-sky-600 h-14 text-lg font-bold rounded-xl shadow-lg shadow-sky-500/20 disabled:opacity-50 transition-all"
-                        >
-                          {isSubmitting ? (
-                            "Sending..."
-                          ) : (
-                            <>
-                              {isVerified ? "Send Message" : "Verify & Send"} 
-                              <Send className="ml-2 w-5 h-5" />
-                            </>
-                          )}
-                        </Button>
-                      )}
-                    </AnimatePresence>
-                    
-                    {!isVerified && !showCaptcha && (
-                      <p className="text-[10px] text-slate-500 text-center uppercase tracking-widest font-bold">
-                        Verification required on first message
-                      </p>
-                    )}
-                  </form>
+                    <Button 
+                      onClick={handleEmailClick}
+                      className="w-full bg-sky-500 hover:bg-sky-600 h-16 text-xl font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all"
+                    >
+                      Email Me
+                      <Mail className="ml-3 w-6 h-6" />
+                    </Button>
+                  </div>
                </div>
             </motion.div>
           </div>
