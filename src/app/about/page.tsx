@@ -15,9 +15,42 @@ type HobbyImage = {
   alt: string;
 };
 
+const PickleBallIcon = () => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+    <defs>
+      <radialGradient id="pb-ball" cx="38%" cy="32%" r="72%">
+        <stop offset="0%" stopColor="#d7ff45" />
+        <stop offset="55%" stopColor="#a8ee0c" />
+        <stop offset="100%" stopColor="#67b800" />
+      </radialGradient>
+      <radialGradient id="pb-highlight" cx="35%" cy="28%" r="30%">
+        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.65" />
+        <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    <circle cx="100" cy="100" r="94" fill="url(#pb-ball)" stroke="#4e9400" strokeWidth="2.5" />
+    <circle cx="100" cy="100" r="94" fill="url(#pb-highlight)" />
+    <circle cx="115" cy="55" r="10.5" fill="#7fc600" stroke="#59a300" strokeWidth="1.5" opacity="0.85" />
+    <circle cx="115" cy="55" r="10.5" fill="#ffffff" opacity="0.45" />
+    <circle cx="60" cy="78" r="12" fill="#7fc600" stroke="#59a300" strokeWidth="1.5" opacity="0.9" />
+    <circle cx="60" cy="78" r="12" fill="#ffffff" opacity="0.35" />
+    <circle cx="72" cy="112" r="16" fill="#8dd600" stroke="#5aa800" strokeWidth="1.5" />
+    <circle cx="72" cy="112" r="16" fill="#ffffff" opacity="0.25" />
+    <circle cx="128" cy="114" r="16.5" fill="#8dd600" stroke="#5aa800" strokeWidth="1.5" />
+    <circle cx="128" cy="114" r="16.5" fill="#ffffff" opacity="0.25" />
+    <circle cx="165" cy="98" r="11" fill="#7fc600" stroke="#59a300" strokeWidth="1.5" opacity="0.9" />
+    <circle cx="165" cy="98" r="11" fill="#ffffff" opacity="0.35" />
+    <ellipse cx="62" cy="150" rx="14" ry="8" fill="#85cb00" stroke="#559e00" strokeWidth="1.5" transform="rotate(-18 62 150)" opacity="0.9" />
+    <ellipse cx="132" cy="164" rx="16" ry="8" fill="#85cb00" stroke="#559e00" strokeWidth="1.5" transform="rotate(12 132 164)" opacity="0.9" />
+    <ellipse cx="88" cy="182" rx="18" ry="6" fill="#80c300" stroke="#529900" strokeWidth="1.5" opacity="0.9" />
+    <ellipse cx="148" cy="42" rx="16" ry="7" fill="#85cb00" stroke="#559e00" strokeWidth="1.5" transform="rotate(20 148 42)" opacity="0.85" />
+  </svg>
+);
+
 type Hobby = {
   title: string;
-  icon: string;
+  icon: React.ReactNode;
+  iconLabel: string;
   description: string;
   images: HobbyImage[];
   accent: string;
@@ -26,7 +59,8 @@ type Hobby = {
 const hobbies: Hobby[] = [
   {
     title: "Pickle Ball",
-    icon: "🎾",
+    icon: <PickleBallIcon />,
+    iconLabel: "🏓",
     description: "Staying active and competitive on the court with fast-paced rallies",
     accent: "from-yellow-500/20 to-emerald-500/20",
     images: [
@@ -38,6 +72,7 @@ const hobbies: Hobby[] = [
   {
     title: "Billiards",
     icon: "🎱",
+    iconLabel: "🎱",
     description: "Focusing the mind with strategic shots and precise positioning",
     accent: "from-sky-500/20 to-indigo-500/20",
     images: [
@@ -47,6 +82,7 @@ const hobbies: Hobby[] = [
   {
     title: "Coffee Sessions",
     icon: "☕",
+    iconLabel: "☕",
     description: "Fueling creativity one cup at a time in cozy cafés",
     accent: "from-amber-500/20 to-orange-500/20",
     images: [
@@ -56,6 +92,7 @@ const hobbies: Hobby[] = [
   {
     title: "Hiking",
     icon: "🥾",
+    iconLabel: "🥾",
     description: "Exploring nature trails and reaching breathtaking mountain summits",
     accent: "from-emerald-500/20 to-teal-500/20",
     images: [
@@ -66,6 +103,7 @@ const hobbies: Hobby[] = [
   {
     title: "Travel",
     icon: "✈️",
+    iconLabel: "✈️",
     description: "Discovering new places, cultures, and unforgettable experiences",
     accent: "from-sky-500/20 to-cyan-500/20",
     images: [
@@ -92,6 +130,7 @@ export default function AboutPage() {
   const [lightboxImages, setLightboxImages] = React.useState<HobbyImage[]>([]);
   const [lightboxIndex, setLightboxIndex] = React.useState(0);
   const [activeHobbyTitle, setActiveHobbyTitle] = React.useState("");
+  const [activeHobbyIcon, setActiveHobbyIcon] = React.useState<React.ReactNode>("✨");
 
   const touchStartX = React.useRef<number | null>(null);
   const touchEndX = React.useRef<number | null>(null);
@@ -101,7 +140,8 @@ export default function AboutPage() {
   const openLightbox = (hobby: Hobby, startIndex: number = 0) => {
     setLightboxImages(hobby.images);
     setLightboxIndex(startIndex);
-    setActiveHobbyTitle(`${hobby.icon} ${hobby.title}`);
+    setActiveHobbyTitle(hobby.title);
+    setActiveHobbyIcon(hobby.icon);
     setLightboxOpen(true);
     if (typeof document !== "undefined") {
       document.body.style.overflow = "hidden";
@@ -113,6 +153,7 @@ export default function AboutPage() {
     setLightboxImages([]);
     setLightboxIndex(0);
     setActiveHobbyTitle("");
+    setActiveHobbyIcon("✨");
     if (typeof document !== "undefined") {
       document.body.style.overflow = "";
     }
@@ -475,8 +516,8 @@ export default function AboutPage() {
           >
             <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-3 sm:px-5 py-3 sm:py-4 bg-gradient-to-b from-black/85 via-black/60 to-transparent">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white/90 border border-white/10 shrink-0">
-                  {hobbies.find(h => `${h.icon} ${h.title}` === activeHobbyTitle)?.icon || "✨"}
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white/90 border border-white/10 shrink-0 overflow-hidden">
+                  {activeHobbyIcon || "✨"}
                 </div>
                 <div className="min-w-0">
                   <p className="text-white font-semibold text-sm sm:text-base truncate">{activeHobbyTitle}</p>
