@@ -18,19 +18,21 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [isZoomed, setIsZoomed] = React.useState(false);
 
-  // Reset zoom when image changes
-  React.useEffect(() => {
-    setIsZoomed(false);
-  }, [currentIndex]);
-
   const handleNext = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     setCurrentIndex((prev) => (prev + 1) % images.length);
+    setIsZoomed(false);
   };
 
   const handlePrev = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    setIsZoomed(false);
+  };
+
+  const handleThumbnailClick = (idx: number) => {
+    setCurrentIndex(idx);
+    setIsZoomed(false);
   };
 
   const toggleZoom = (e?: React.MouseEvent) => {
@@ -151,7 +153,7 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
               {images.map((img, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setCurrentIndex(idx)}
+                  onClick={() => handleThumbnailClick(idx)}
                   className={`relative flex-shrink-0 w-16 h-10 sm:w-24 sm:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 transition-all duration-300 ${
                     idx === currentIndex 
                       ? "border-sky-500 scale-110 shadow-[0_0_20px_rgba(14,165,233,0.3)]" 

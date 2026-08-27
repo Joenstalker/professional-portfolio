@@ -26,15 +26,15 @@ export function Hero() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <p className="text-lg sm:text-xl text-foreground mb-2">Hi, I'm</p>
+            <p className="text-lg sm:text-xl text-foreground mb-2">Hi, I&apos;m</p>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-extrabold text-foreground mb-4 leading-tight">
               Joenil <span className="text-sky-400">Acero</span>
             </h1>
             <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-muted-foreground mb-6 flex items-center">
-              Developer | System Designer | Problem Solver
+              Full-Stack Developer Building Secure, Practical Information Systems
             </h2>
-            <p className="text-base sm:text-lg text-muted-foreground max-w-xl mb-10 leading-relaxed">
-              I build modern systems, desktop applications, and engaging games that solve real-world problems and deliver impactful user experiences.
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mb-10 leading-relaxed">
+              I design and develop web-based systems for organizations — from role-based management platforms and SaaS applications to document-focused public-service solutions with robust databases and access control.
             </p>
             
             <div className="flex flex-wrap gap-4 mb-10">
@@ -44,9 +44,9 @@ export function Hero() {
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="border-border hover:bg-accent rounded-xl px-8 h-14 text-lg font-bold text-foreground">
+              <Button asChild variant="outline" size="lg" className="border-border hover:bg-accent rounded-xl px-8 h-14 text-lg font-bold text-foreground">
                 <Link href="/contact">
-                  Let's Work Together
+                  Let&apos;s Work Together
                 </Link>
               </Button>
             </div>

@@ -1,13 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { User, Code, Cpu, Layout, Briefcase, Award, Clock, Heart, Terminal, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { motion } from "framer-motion";
+import { Code, Briefcase, Clock, Heart, Terminal, ExternalLink, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { skills } from "@/data/skills";
+import Link from "next/link";
 
 export function About() {
-  const [isExpanded, setIsExpanded] = React.useState(false);
   const marqueeSkills = skills.filter(s => 
     ["Frontend", "Backend", "Database", "Tools", "IoT/Hardware", "Deployment"].includes(s.category)
   );
@@ -23,7 +23,6 @@ export function About() {
     <section id="about" className="py-24 bg-background relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-20">
-          {/* Left Side */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -38,53 +37,21 @@ export function About() {
               <span className="text-sky-400">Real-World Solutions</span>
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              I'm a passionate developer with experience in building web applications, desktop systems, and interactive games. 
+              I&apos;m a passionate developer with experience in building web applications, desktop systems, and interactive games. 
               I love combining creativity and logic to develop systems that are not only functional but also meaningful.
             </p>
 
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="space-y-4 overflow-hidden"
-                >
-                  <div className="p-4 rounded-2xl bg-sky-500/5 border border-sky-500/10">
-                    <p className="text-muted-foreground leading-relaxed">
-                      Beyond my technical skills in software development, I am also a{" "}
-                      <a 
-                        href="/NC2.pdf" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-sky-400 font-semibold text-sm hover:underline decoration-sky-400/30 underline-offset-4 transition-all"
-                      >
-                        Certified Electrical Installation and Maintenance NC2 (TESDA)
-                      </a>
-                      . This background gives me a unique perspective on the physical infrastructure that powers our digital world.
-                    </p>
-                  </div>
-                  <p className="text-muted-foreground leading-relaxed italic">
-                    "I have an insatiable curiosity for technology because it knows no limits. It is a field that is constantly evolving every day, and I am driven by the challenge of staying at the forefront of that evolution."
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
             <Button 
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="bg-accent/50 hover:bg-accent text-foreground border border-border rounded-xl px-8 h-12 transition-all duration-300"
+              asChild
+              className="bg-accent/50 hover:bg-accent text-foreground border border-border rounded-xl px-8 h-12 transition-all duration-300 group"
             >
-              {isExpanded ? (
-                <>Show Less <ChevronUp className="ml-2 w-4 h-4" /></>
-              ) : (
-                <>More About Me <ChevronDown className="ml-2 w-4 h-4" /></>
-              )}
+              <Link href="/about">
+                More About Me 
+                <ChevronRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </Button>
           </motion.div>
 
-          {/* Right Side - Stats Grid */}
           <div className="grid grid-cols-2 gap-4">
             {stats.map((stat, idx) => (
               <motion.div
@@ -105,7 +72,6 @@ export function About() {
           </div>
         </div>
 
-        {/* Technologies Subsection with Infinite Marquee */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -120,9 +86,9 @@ export function About() {
               <h3 className="text-2xl font-bold text-foreground uppercase tracking-wider">Technologies I Use</h3>
             </div>
             <Button variant="outline" className="border-border text-foreground hover:bg-accent rounded-xl" asChild>
-              <a href="/skills">
+              <Link href="/skills">
                 See All Technologies <ExternalLink className="ml-2 w-4 h-4" />
-              </a>
+              </Link>
             </Button>
           </div>
 

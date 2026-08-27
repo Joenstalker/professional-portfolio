@@ -11,7 +11,7 @@ import { useTheme } from "next-themes";
 
 const navItems = [
   { name: "Home", href: "/" },
-  { name: "About", href: "/#about" },
+  { name: "About", href: "/about" },
   { name: "Projects", href: "/projects" },
   { name: "Technologies", href: "/skills" },
   { name: "Certificates", href: "/certificates" },
@@ -25,7 +25,8 @@ export function Navbar() {
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   return (

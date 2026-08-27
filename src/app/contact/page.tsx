@@ -34,7 +34,7 @@ export default function ContactPage() {
               transition={{ delay: 0.1 }}
               className="text-5xl md:text-6xl font-bold text-foreground mb-6"
             >
-              Let's <span className="text-sky-400">Connect</span>
+              Let&apos;s <span className="text-sky-400">Connect</span>
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -42,7 +42,7 @@ export default function ContactPage() {
               transition={{ delay: 0.2 }}
               className="text-muted-foreground max-w-2xl mx-auto text-lg"
             >
-              I'm always open to new opportunities and collaborations. Let's build something amazing together!
+              I&apos;m always open to new opportunities and collaborations. Let&apos;s build something amazing together!
             </motion.p>
           </div>
 
@@ -60,7 +60,7 @@ export default function ContactPage() {
                         <Award className="w-5 h-5 mr-2 text-sky-400" />
                         AI Assistant
                      </h3>
-                     <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest font-bold">Joenil's Portfolio Bot</p>
+                     <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest font-bold">Joenil&apos;s Portfolio Bot</p>
                   </div>
                   <div className="flex-1 p-0">
                      <AIChatbot inline />
@@ -101,8 +101,20 @@ export default function ContactPage() {
                         </div>
                         <div>
                            <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold mb-1">Location</p>
-                           <p className="text-foreground font-medium">Malaybalay City, Bukidnon, Philippines</p>
+                           <p className="text-foreground font-medium leading-relaxed">Barangay Sumpong, Malaybalay City, Bukidnon, 8700, Philippines</p>
                         </div>
+                     </div>
+                     <div className="rounded-2xl overflow-hidden border border-border h-56">
+                        <iframe
+                           src="https://www.google.com/maps?q=Barangay%20Sumpong%2C%20Malaybalay%20City%2C%20Bukidnon%2C%208700&output=embed"
+                           width="100%"
+                           height="100%"
+                           style={{ border: 0 }}
+                           allowFullScreen
+                           loading="lazy"
+                           referrerPolicy="no-referrer-when-downgrade"
+                           title="Barangay Sumpong, Malaybalay City, Bukidnon Location Map"
+                        />
                      </div>
                      <a href="https://www.facebook.com/JoENIlacErO23OIIO7SSZ19O6O5" target="_blank" rel="noopener noreferrer" className="flex items-start space-x-4 group">
                         <div className="w-12 h-12 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-400 shrink-0 group-hover:bg-sky-500 group-hover:text-white transition-all">
