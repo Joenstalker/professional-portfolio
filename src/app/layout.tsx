@@ -14,8 +14,45 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Professional Developer Portfolio",
-  description: "Showcasing modern software development skills, projects, and AI integration.",
+  metadataBase: new URL("https://joenilacero.vercel.app"),
+  title: {
+    default: "Joenil Acero | Full-Stack Developer Portfolio",
+    template: "%s | Joenil Acero",
+  },
+  description:
+    "Joenil Acero — Full-stack developer specializing in web apps, desktop systems, and interactive games. Explore projects, skills, and professional portfolio.",
+  keywords: [
+    "Joenil Acero",
+    "Full-Stack Developer",
+    "Portfolio",
+    "Web Developer",
+    "Software Engineer",
+    "React",
+    "Next.js",
+    "TypeScript",
+    "Philippines Developer",
+  ],
+  authors: [{ name: "Joenil Acero" }],
+  creator: "Joenil Acero",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://joenilacero.vercel.app",
+    siteName: "Joenil Acero Portfolio",
+    title: "Joenil Acero | Full-Stack Developer Portfolio",
+    description:
+      "Full-stack developer specializing in web apps, desktop systems, and interactive games. Explore projects, skills, and professional portfolio.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Joenil Acero | Full-Stack Developer Portfolio",
+    description:
+      "Full-stack developer specializing in web apps, desktop systems, and interactive games. Explore projects, skills, and professional portfolio.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export const viewport: Viewport = {
