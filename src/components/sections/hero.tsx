@@ -58,7 +58,7 @@ export function Hero() {
               <Link href="https://www.facebook.com/JoENIlacErO23OIIO7SSZ19O6O5" className="text-muted-foreground hover:text-foreground transition-all transform hover:scale-110">
                 <Facebook className="w-6 h-6" />
               </Link>
-              <Link href="https://github.com/Joenstalker" className="text-muted-foreground hover:text-foreground transition-all transform hover:scale-110">
+              <Link href="https://www.linkedin.com/in/joenil-acero-576521205" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-all transform hover:scale-110">
                 <Linkedin className="w-6 h-6" />
               </Link>
               <Link href="https://mail.google.com/mail/?view=cm&fs=1&to=joenilpanal@gmail.com" className="text-muted-foreground hover:text-foreground transition-all transform hover:scale-110">
