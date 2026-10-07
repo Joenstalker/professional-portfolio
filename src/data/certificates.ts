@@ -10,6 +10,15 @@ export interface Certificate {
 
 export const certificates: Certificate[] = [
   {
+    id: "topcit",
+    title: "TOPCIT - Test of Practical Competency in IT",
+    issuer: "TOPCIT / Korea Ministry of Science and ICT",
+    date: "2026",
+    imageUrl: "/joenils-certss/TOPCIT.jpg",
+    link: "/Download%20CV/TOPCIT%20Certificate.pdf",
+    category: "Programming"
+  },
+  {
     id: "python-essentials-2",
     title: "Python Essentials 2",
     issuer: "Cisco Networking Academy / OpenEDG",

@@ -176,15 +176,23 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
          <div className="px-6 pb-4 flex flex-wrap gap-2 max-h-[120px] overflow-y-auto scrollbar-hide shrink-0">
             {[
               "Tell me about yourself.",
-              "Introduce yourself in one minute.",
+              "What are your hobbies?",
+              "What certificates do you have?",
+              "Tell me about TOPCIT.",
+              "What is your TESDA NC2?",
+              "What projects have you built?",
+              "Tell me about the Dental Clinic System.",
+              "Tell me about the POS System.",
+              "What tech stack do you use?",
+              "What frontend frameworks do you know?",
+              "How can I contact you?",
+              "What's your phone number?",
+              "What are your GitHub and LinkedIn?",
               "Why should we hire you?",
               "What are your strengths?",
-              "What is your career goals?",
-              "What motivates you to work hard?",
-              "What programming languages do you know?",
-              "What is your biggest professional strength?",
-              "Tell us about a project you're proud of.",
-              "What makes you different from other applicants?"
+              "What services do you offer?",
+              "Do you install CCTV?",
+              "How many years experience?"
             ].map(s => (
                <button 
                   key={s}
