@@ -19,6 +19,28 @@ export interface Stat {
   value: string;
 }
 
+export interface PortfolioRoute {
+  key: "home" | "about" | "projects" | "skills" | "certificates" | "contact";
+  path: string;
+  label: string;
+  keywords: string[];
+}
+
+export interface DownloadFile {
+  key: string;
+  label: string;
+  url: string;
+  description: string;
+  keywords: string[];
+}
+
+export interface MapLinks {
+  embed: string;
+  openUrl: string;
+  directionsUrl: string;
+  title: string;
+}
+
 export interface KnowledgeBase {
   personal: {
     fullName: string;
@@ -47,6 +69,16 @@ export interface KnowledgeBase {
     emailUrl: string;
     phone: string;
     socials: SocialLink[];
+  };
+  portfolio: {
+    routes: PortfolioRoute[];
+    downloads: DownloadFile[];
+    map: MapLinks;
+    sourceCode: {
+      portfolioRepoUrl?: string;
+      authorProfileUrl: string;
+      profileLabel: string;
+    };
   };
   stats: Stat[];
   hobbies: Hobby[];
@@ -137,6 +169,44 @@ Current Status: Learning continuously, Building constantly, Trusting God daily, 
         url: "https://www.linkedin.com/in/joenil-acero-576521205"
       }
     ]
+  },
+
+  portfolio: {
+    routes: [
+      { key: "home", path: "/", label: "Home", keywords: ["home", "landing page", "main page", "front page", "go home"] },
+      { key: "about", path: "/about", label: "About Me", keywords: ["about", "about me", "about yourself", "tell me about", "go to about", "open about"] },
+      { key: "projects", path: "/projects", label: "Projects", keywords: ["project", "projects", "show projects", "open projects", "go to projects", "portfolio work"] },
+      { key: "skills", path: "/skills", label: "Technologies / Skills", keywords: ["skill", "skills", "technology", "technologies", "tech stack", "show skills", "open skills", "go to skills"] },
+      { key: "certificates", path: "/certificates", label: "Certificates", keywords: ["certificate", "certificates", "certification", "certifications", "award", "awards", "show certificates", "open certificates", "go to certificates"] },
+      { key: "contact", path: "/contact", label: "Contact", keywords: ["contact", "contact me", "get in touch", "hire", "show contact", "open contact", "go to contact"] }
+    ],
+    downloads: [
+      {
+        key: "cv",
+        label: "Joenil Acero CV.pdf",
+        url: "/Download%20CV/Joenil%20Acero%20CV.pdf",
+        description: "Full curriculum vitae / resume for Joenil P. Acero.",
+        keywords: ["cv", "resume", "download cv", "download resume", "send resume", "send cv", "show cv", "biodata"]
+      },
+      {
+        key: "topcit-pdf",
+        label: "TOPCIT Certificate.pdf",
+        url: "/Download%20CV/TOPCIT%20Certificate.pdf",
+        description: "Official TOPCIT certificate PDF.",
+        keywords: ["topcit pdf", "topcit download", "topcit certificate file"]
+      }
+    ],
+    map: {
+      embed: "https://www.google.com/maps?q=Barangay%20Sumpong%2C%20Malaybalay%20City%2C%20Bukidnon%2C%208700&output=embed",
+      openUrl: "https://www.google.com/maps?q=Barangay%20Sumpong%2C%20Malaybalay%20City%2C%20Bukidnon%2C%208700",
+      directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=Barangay%20Sumpong%2C%20Malaybalay%20City%2C%20Bukidnon%2C%208700",
+      title: "Barangay Sumpong, Malaybalay City, Bukidnon Location Map"
+    },
+    sourceCode: {
+      authorProfileUrl: "https://github.com/Joenstalker",
+      profileLabel: "github.com/Joenstalker",
+      portfolioRepoUrl: undefined
+    }
   },
 
   stats: [

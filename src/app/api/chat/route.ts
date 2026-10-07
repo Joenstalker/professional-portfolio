@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { KNOWLEDGE_BASE } from "@/data/knowledge-base";
+import { KNOWLEDGE_BASE, type PortfolioRoute, type DownloadFile } from "@/data/knowledge-base";
 
 const KB = KNOWLEDGE_BASE;
 
@@ -24,8 +24,7 @@ function matchFaq(msg: string): { answer: string } | null {
 }
 
 function formatProjectDetail(p: typeof KB.projects[0]): string {
-  const links = [];
-  if (p.githubUrl) links.push(`[GitHub](${p.githubUrl})`);
+  const links: string[] = [];
   const docsUrl = (p as { documentationUrl?: string }).documentationUrl;
   if (docsUrl) links.push(`[Documentation](${docsUrl})`);
   return `**${p.title}** (${p.category})\n\n` +
@@ -35,12 +34,127 @@ function formatProjectDetail(p: typeof KB.projects[0]): string {
          (links.length > 0 ? `\n\n**Links:** ${links.join(" • ")}` : "");
 }
 
+const PH_TZ = "Asia/Manila";
+
+function getPHDate(date: Date = new Date()): string {
+  try {
+    return new Intl.DateTimeFormat("en-PH", {
+      timeZone: PH_TZ,
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(date);
+  } catch {
+    return date.toDateString();
+  }
+}
+
+function getPHTime(date: Date = new Date()): string {
+  try {
+    return new Intl.DateTimeFormat("en-PH", {
+      timeZone: PH_TZ,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    }).format(date) + " PST (UTC+8)";
+  } catch {
+    return date.toLocaleTimeString();
+  }
+}
+
+function findRoute(msg: string): PortfolioRoute | null {
+  const n = normalize(msg);
+  for (const r of KB.portfolio.routes) {
+    const kwMatch = r.keywords.filter(k => n.includes(normalize(k))).length;
+    const askNav = containsAny(msg, ["go to", "show me", "open", "take me to", "navigate", "show page", "show the", "where is the"]);
+    if (kwMatch > 0 && (askNav || ["about", "projects", "skills", "certificates", "contact"].includes(r.key))) {
+      if (kwMatch >= 1 && askNav) return r;
+      if (kwMatch >= 2) return r;
+    }
+  }
+  return null;
+}
+
+function findDownload(msg: string): DownloadFile | null {
+  const n = normalize(msg);
+  for (const d of KB.portfolio.downloads) {
+    const kwMatch = d.keywords.filter(k => n.includes(normalize(k))).length;
+    if (kwMatch >= 1) return d;
+  }
+  return null;
+}
+
+function seedRandom(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 0xffffffff;
+  };
+}
+
+function randomFaqIndex(exclude?: number): number {
+  const len = KB.faq.length;
+  const rand = seedRandom(Date.now() & 0x7fffffff)();
+  let idx = Math.floor(rand * len) % len;
+  if (len > 1 && exclude !== undefined && idx === exclude) idx = (idx + 1) % len;
+  return idx;
+}
+
+function extractTechCandidates(msg: string): string[] {
+  const cleaned = msg
+    .replace(/\b(do|does|is|are|he|joenil|know|know|familiar|with|these|the|a|an|to|and|&|\/|,|;|:|\?|!|\.)\b/gi, " ")
+    .replace(/\s+/g, " ");
+  return cleaned
+    .split(/\s+/)
+    .map(s => s.trim())
+    .filter(s => s.length >= 2);
+}
+
+function scoreSkills(candidates: string[]): { known: string[]; missing: string[]; percent: number } {
+  const allSkillNames = KB.skills.categorized.map(s => s.name.toLowerCase());
+  const known: string[] = [];
+  const missing: string[] = [];
+  for (const raw of candidates) {
+    const c = normalize(raw);
+    if (!c) continue;
+    const hit = allSkillNames.find(s => s === c || s.includes(c) || c.includes(s));
+    if (hit) {
+      const display = KB.skills.categorized.find(x => x.name.toLowerCase() === hit)?.name || hit;
+      if (!known.includes(display)) known.push(display);
+    } else {
+      if (!missing.includes(raw)) missing.push(raw);
+    }
+  }
+  const total = known.length + missing.length;
+  const percent = total > 0 ? Math.round((known.length / total) * 100) : 0;
+  return { known, missing, percent };
+}
+
+type CertCategory = "Programming" | "Web Development" | "Database" | "IoT" | "Blockchain" | "Networking";
+const VALID_CERT_CATS: CertCategory[] = ["Programming", "Web Development", "Database", "IoT", "Blockchain", "Networking"];
+
+function categoryFromMessage(msg: string): CertCategory | null {
+  if (containsAny(msg, ["programming", "python", "java", "topcit", "language"])) return "Programming";
+  if (containsAny(msg, ["web development", "frontend", "web certif", "html", "css"])) return "Web Development";
+  if (containsAny(msg, ["database", "db certif", "sql", "mysql", "mongo"])) return "Database";
+  if (containsAny(msg, ["iot", "arduino", "hardware", "robot"])) return "IoT";
+  if (containsAny(msg, ["blockchain", "sui", "crypto", "web3", "devcon"])) return "Blockchain";
+  if (containsAny(msg, ["networking", "network", "ccna", "cisco", "routing", "switch"])) return "Networking";
+  return null;
+}
+
+function yearFromMessage(msg: string): string | null {
+  const match = msg.match(/20\d{2}/);
+  return match ? match[0] : null;
+}
+
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
     const rawMessage = messages[messages.length - 1].content as string;
     const msg = rawMessage.toLowerCase();
-    const n = normalize(rawMessage);
 
     // 1) FAQ direct match first
     const faqMatch = matchFaq(rawMessage);
@@ -49,7 +163,167 @@ export async function POST(req: Request) {
       return NextResponse.json({ content: faqMatch.answer });
     }
 
-    let response = `I&apos;m Joenil&apos;s AI Portfolio Assistant! 🤖 I have access to Joenil&apos;s full portfolio data.
+    // 2) Date / Time utilities
+    const wantDate = containsAny(msg, ["date today", "what is the date", "today's date", "what day is it", "current date", "what date is today", "anong petsa", "petsa ngayon", "date ngayon"]);
+    const wantTime = containsAny(msg, ["time today", "what is the time", "current time", "what time is it", "time now", "time right now", "anong oras", "oras ngayon", "time ngayon"]);
+    const wantDatetime = wantDate || wantTime;
+
+    let response: string;
+    if (wantDatetime) {
+      const now = new Date();
+      if (wantDate && wantTime) {
+        response = `📅 Today is **${getPHDate(now)}**\n\n🕒 Current time: **${getPHTime(now)}**\n\n(Time zone used: Philippine Standard Time — Asia/Manila, UTC+8)`;
+      } else if (wantDate) {
+        response = `📅 Today is **${getPHDate(now)}**.\n\n(Philippine Standard Time, Asia/Manila)`;
+      } else {
+        response = `🕒 The current time is **${getPHTime(now)}**.\n\n(Philippine Standard Time, Asia/Manila)`;
+      }
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return NextResponse.json({ content: response });
+    }
+
+    // 3) Random Interview Question Generator
+    if (containsAny(msg, ["random interview question", "quiz me", "quiz me about joenil", "ask me an interview question", "give me an interview question", "random question", "interview question"])) {
+      const idx = randomFaqIndex();
+      const entry = KB.faq[idx];
+      response = `🎯 **Interview Question #${idx + 1} of ${KB.faq.length}**\n\n**Q:** ${entry.question}\n\n💡 *Tip: Think about your answer first! Then ask me to tell you more about it.*\n\n(I randomly selected this from Joenil's ${KB.faq.length}+ interview Q&A dataset.)`;
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return NextResponse.json({ content: response });
+    }
+
+    // 4) Skills Match Scoring
+    const skillsMatchTrigger =
+      containsAny(msg, ["know react", "know laravel", "know typescript", "know mysql", "familiar with", "does (he|joenil) know", "skill check", "skills match", "does he know these", "does (he|joenil) use", "does he have experience with"]);
+    if (skillsMatchTrigger || (containsAny(msg, ["know", "familiar with", "experience with"]) && extractTechCandidates(msg).length >= 1)) {
+      const candidates = extractTechCandidates(msg);
+      if (candidates.length > 0) {
+        const { known, missing, percent } = scoreSkills(candidates);
+        const parts: string[] = [];
+        parts.push(`🔎 **Skills Match Report** (${candidates.length} candidate${candidates.length > 1 ? "s" : ""})\n`);
+        if (known.length > 0) parts.push(`✅ **Known (${known.length}):** ${known.join(", ")}`);
+        if (missing.length > 0) parts.push(`❌ **Not explicitly listed in dataset (${missing.length}):** ${missing.join(", ")}`);
+        parts.push(`\n**Match Score: ${percent}%**`);
+        if (known.length > 0) parts.push(`\n*Tip: Ask "What ${known[0]} projects do you have?" to see related work!*`);
+        response = parts.join("\n");
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return NextResponse.json({ content: response });
+      }
+    }
+
+    // 5) CV / Resume Download — check before generic navigation
+    const dl = findDownload(msg);
+    if (dl) {
+      response = `📄 **${dl.label}**\n\n${dl.description}\n\n**👉 [Download / View ${dl.key === "cv" ? "CV" : dl.label}](${dl.url})**\n\n(Click the link above to open the PDF in a new tab or download it.)`;
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return NextResponse.json({ content: response });
+    }
+
+    // 6) Location / Map Directions — also catches before generic "location"
+    const wantsMap = containsAny(msg, ["map", "show me your location", "how to get there", "directions", "get direction", "map your location", "google map", "map location"]);
+    if (wantsMap) {
+      const wantDir = containsAny(msg, ["how to get there", "directions", "get direction", "how to go", "commute", "commute directions"]);
+      if (wantDir) {
+        response = `🧭 **Directions to Joenil**\n\n📍 Address: ${KB.personal.location.fullAddress}\n\n**👉 [Get Directions via Google Maps](${KB.portfolio.map.directionsUrl})**\n\nAlso: **[View Location on Google Maps](${KB.portfolio.map.openUrl})**`;
+      } else {
+        response = `📍 **Joenil's Location**\n\n**Address:** ${KB.personal.location.fullAddress}\n\n**👉 [View in Google Maps](${KB.portfolio.map.openUrl})**\n\nNeed directions? Just ask me "how to get there"!`;
+      }
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return NextResponse.json({ content: response });
+    }
+
+    // 7) Source Code / Portfolio Repository
+    if (containsAny(msg, ["source code", "clone this portfolio", "portfolio repository", "portfolio repo", "portfolio source", "source of this portfolio", "where is the source code"])) {
+      const sc = KB.portfolio.sourceCode;
+      const parts: string[] = [`💻 **Portfolio Source Code**\n`];
+      if (sc.portfolioRepoUrl) {
+        parts.push(`**Repository:** [View Portfolio Repository](${sc.portfolioRepoUrl})`);
+      } else {
+        parts.push(`The specific repository for this portfolio site is not published yet.`);
+      }
+      parts.push(`\n**Joenil&apos;s GitHub Profile:** [${sc.profileLabel}](${sc.authorProfileUrl})\n\n(Follow him there for updates and public work!)`);
+      response = parts.join("\n");
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return NextResponse.json({ content: response });
+    }
+
+    // 8) Portfolio Quick Navigation
+    const navAsk = containsAny(msg, ["go to", "show me", "open", "take me to", "navigate to", "show the", "where is the"]);
+    const routeMatch = navAsk ? findRoute(msg) : null;
+    if (routeMatch) {
+      response = `✅ **Navigating to ${routeMatch.label}**\n\n**👉 [Open ${routeMatch.label} Page](${routeMatch.path})**\n\n(Click the link to open the ${routeMatch.key} section of this portfolio.)`;
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return NextResponse.json({ content: response });
+    }
+
+    // 9) Certificates Filter (category / year / title)
+    if (containsAny(msg, ["certificate", "certification", "certified", "cert", "award"]) &&
+        (containsAny(msg, ["show ", "list ", "filter", "in 20", "of 20", "by category", "does he have", "what (certif|cert)"]) || VALID_CERT_CATS.includes(categoryFromMessage(msg) as CertCategory) || !!yearFromMessage(msg))) {
+      const cat = categoryFromMessage(msg);
+      const yr = yearFromMessage(msg);
+      let list = [...KB.certifications.all];
+      const titleKws = msg.match(/(topcit|python|ccna|sui|devcon|java|web|database|iot|networking)/gi);
+      if (cat) list = list.filter(c => c.category === cat);
+      if (yr) list = list.filter(c => c.date.includes(yr));
+      if (titleKws && titleKws.length > 0) {
+        const kws = titleKws.map(k => k.toLowerCase());
+        list = list.filter(c => kws.some(k => c.title.toLowerCase().includes(k) || c.id.toLowerCase().includes(k)));
+      }
+      if (list.length === 0) {
+        response = `📭 No certificates match the filter. Try broader keywords or ask "what certificates do you have?"`;
+      } else {
+        const header = `🏆 **Filtered Certificates (${list.length} found)**\n` +
+                       (cat ? `• Category: ${cat}\n` : "") +
+                       (yr ? `• Year: ${yr}\n` : "");
+        const body = list.map(c => {
+          const linkPart = c.link ? `\n   View: [Original / PDF](${c.link})` : "";
+          return `• **${c.title}** — ${c.issuer} (${c.date}) [${c.category}]${linkPart}`;
+        }).join("\n\n");
+        response = `${header}\n${body}\n\nBrowse all → **[Certificates Page](/certificates)**`;
+      }
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return NextResponse.json({ content: response });
+    }
+
+    // 10) Projects Filter (technology / category)
+    const hasTechNames = extractTechCandidates(msg).length > 0 && containsAny(msg, ["project that use", "projects use", "projects with", "uses laravel", "uses react", "uses next", "uses vue", "uses php", "uses java", "uses arduino", "uses electron", "uses mysql"]);
+    const hasCatNames = containsAny(msg, ["fullstack project", "frontend project", "backend project", "iot project", "desktop project", "game dev project", "full-stack project"]);
+    const askProjectsFilter = containsAny(msg, ["which project", "what project", "projects that use", "projects using", "show me projects", "list projects by", "filter projects"]);
+    if (askProjectsFilter || hasTechNames || hasCatNames) {
+      const techCandidates = extractTechCandidates(msg).filter(w => w.length >= 3);
+      const byTech = techCandidates.length > 0
+        ? KB.projects.filter(p =>
+            p.technologies.some(t =>
+              techCandidates.some(kw => {
+                const tl = t.toLowerCase();
+                const kwl = kw.toLowerCase();
+                return tl === kwl || tl.includes(kwl) || kwl.includes(tl);
+              })
+            )
+          )
+        : [];
+      let byCat: typeof KB.projects = [];
+      if (containsAny(msg, ["fullstack", "full stack", "full-stack"])) byCat = KB.projects.filter(p => p.category === "Fullstack");
+      else if (containsAny(msg, ["iot", "hardware", "arduino"])) byCat = KB.projects.filter(p => p.category === "IoT");
+      else if (containsAny(msg, ["desktop", "electron"])) byCat = KB.projects.filter(p => p.category === "Desktop");
+      else if (containsAny(msg, ["frontend", "front-end", "front end"])) byCat = KB.projects.filter(p => p.category === "Frontend");
+      else if (containsAny(msg, ["backend", "back-end", "back end"])) byCat = KB.projects.filter(p => p.category === "Backend");
+
+      const results = byTech.length > 0 ? byTech : byCat;
+      if (results.length > 0) {
+        const head = `🔍 **Found ${results.length} project${results.length > 1 ? "s" : ""}**\n\n`;
+        const body = results.map(p =>
+          `• **${p.title}** [${p.category}]\n   Tech: ${p.technologies.slice(0, 5).join(", ")}`
+        ).join("\n\n");
+        response = `${head}${body}\n\nAsk me "Tell me about <project name>" for full details.`;
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return NextResponse.json({ content: response });
+      } else if (askProjectsFilter) {
+        response = `🔍 I couldn't narrow projects by that filter. Try: "Which projects use Laravel?", "Show fullstack projects", or "Show IoT projects".`;
+      }
+    }
+
+    // ======== Default fallback help message ========
+    response = `I'm Joenil's AI Portfolio Assistant! 🤖 I have access to Joenil's full portfolio data.
 
 Here are some things you can ask me about:
 • **About** Joenil - personal info, motto, philosophy, stats, hobbies
@@ -57,43 +331,46 @@ Here are some things you can ask me about:
 • **Certificates** - TOPCIT, Python Essentials 1 & 2, CCNA 1 & 2, Sui DEVCON, Java, Web, DB, IoT, NC2 TESDA
 • **Skills** - Frontend, Backend, Database, IoT, DevOps, Desktop tools
 • **Contact** - email, phone, address, social media (Facebook, GitHub, LinkedIn)
-• **Services** - Web dev, SaaS, POS, CCTV, electrical installation`;
+• **Services** - Web dev, SaaS, POS, CCTV, electrical installation
+• **Download CV** - or "Give me directions", "Show projects page", "Random interview question"
+• **Skills match** - "Does Joenil know React and Laravel?"
+• **Project / cert filters** - "Projects using Laravel?", "Certificates 2026?"`;
 
     // =================== PERSONAL / IDENTITY ===================
     if (containsAny(msg, ["who is joenil", "who is he", "about joenil", "tell me about joenil", "who are you"])) {
       response = `${KB.personal.whoIsHe}\n\n${KB.personal.detailedBio}\n\n**Personal Motto:** "${KB.personal.motto}"`;
     }
     else if (containsAny(msg, ["full name", "complete name", "what is your name", "real name"])) {
-      response = `Joenil&apos;s full name is **${KB.personal.fullName}**.`;
+      response = `Joenil's full name is **${KB.personal.fullName}**.`;
     }
     else if (containsAny(msg, ["your title", "job title", "position title", "what is his title"])) {
       response = `Joenil is an **${KB.personal.title}** with ${KB.personal.yearsExperience} of experience.`;
     }
     else if (containsAny(msg, ["motto", "philosophy", "believe", "quote", "saying in life", "what is your motto"])) {
-      response = `Joenil&apos;s personal motto is: **"${KB.personal.motto}"**\n\nHis philosophy about technology: "${KB.personal.philosophyQuote}"`;
+      response = `Joenil's personal motto is: **"${KB.personal.motto}"**\n\nHis philosophy about technology: "${KB.personal.philosophyQuote}"`;
     }
     else if (containsAny(msg, ["experience", "how long", "years work", "how many year"])) {
       response = `Joenil has been active in development and technical services **${KB.personal.experience}** (${KB.personal.yearsExperience}).`;
     }
     else if (containsAny(msg, ["location", "where do you live", "where is he", "where from", "address", "city", "province", "live in"])) {
-      response = `Joenil is based in:\n\n**${KB.personal.location.fullAddress}**\n\n• Barangay: ${KB.personal.location.barangay}\n• City: ${KB.personal.location.city}\n• Province: ${KB.personal.location.province}\n• Postal Code: ${KB.personal.location.postalCode}`;
+      response = `Joenil is based in:\n\n**${KB.personal.location.fullAddress}**\n\n• Barangay: ${KB.personal.location.barangay}\n• City: ${KB.personal.location.city}\n• Province: ${KB.personal.location.province}\n• Postal Code: ${KB.personal.location.postalCode}\n\n**👉 [View Map](${KB.portfolio.map.openUrl})**`;
     }
     else if (containsAny(msg, ["relationship", "girlfriend", "taken", "dating", "status", "partner", "love life", "special someone"])) {
       response = `YES, Joenil is ${KB.personal.statusRelationship} with **${KB.personal.partnerName}** ❤️.\n\nYou can find her here: ${KB.personal.partnerProfile}`;
     }
     else if (containsAny(msg, ["stats", "statistics", "numbers", "how many project", "how many skill", "achievements count"])) {
-      response = `Here are Joenil&apos;s quick stats:\n\n` + KB.stats.map(s => `• **${s.value}** — ${s.label}`).join("\n");
+      response = `Here are Joenil's quick stats:\n\n` + KB.stats.map(s => `• **${s.value}** — ${s.label}`).join("\n");
     }
     else if (containsAny(msg, ["hobbies", "hobby", "interests outside", "free time", "what do you do for fun", "pickle", "billiard", "coffee", "hike", "travel", "pastime"])) {
-      response = `Joenil&apos;s hobbies and interests beyond coding:\n\n` +
+      response = `Joenil's hobbies and interests beyond coding:\n\n` +
                  KB.hobbies.map(h => `• **${h.title}** — ${h.description} (${h.photoCount} photo${h.photoCount > 1 ? "s" : ""})`).join("\n") +
                  `\n\nHe also enjoys Bible study, Christian ministry, and exploring business ideas. You can see hobby photos in the About page!`;
     }
     else if (containsAny(msg, ["coffee", "cafe", "café"])) {
-      response = `☕ **Coffee Sessions** is one of Joenil&apos;s hobbies! He loves fueling creativity one cup at a time in cozy cafés. This is part of his balanced approach to life — code, create, and take time to enjoy every moment.`;
+      response = `☕ **Coffee Sessions** is one of Joenil's hobbies! He loves fueling creativity one cup at a time in cozy cafés. This is part of his balanced approach to life — code, create, and take time to enjoy every moment.`;
     }
     else if (containsAny(msg, ["pickle", "pickleball", "sport"])) {
-      response = `🏓 **Pickle Ball** is Joenil&apos;s go-to sport for staying active and competitive with fast-paced rallies! It&apos;s a great way to step away from the keyboard.`;
+      response = `🏓 **Pickle Ball** is Joenil's go-to sport for staying active and competitive with fast-paced rallies! It's a great way to step away from the keyboard.`;
     }
     else if (containsAny(msg, ["billiard", "pool", "snooker"])) {
       response = `🎱 **Billiards** helps Joenil focus his mind with strategic shots and precise positioning — a mental workout outside of coding.`;
@@ -110,7 +387,7 @@ Here are some things you can ask me about:
 
     // =================== AI / TRAINING ===================
     else if (containsAny(msg, ["training", "how do you work", "what are you", "are you ai", "chatbot", "bot", "dataset", "knowledge base"])) {
-      response = `I am Joenil&apos;s specialized **Portfolio Assistant**, powered by a comprehensive knowledge base dataset that covers:\n\n` +
+      response = `I am Joenil's specialized **Portfolio Assistant**, powered by a comprehensive knowledge base dataset that covers:\n\n` +
                  `• **Personal Info** — bio, motto, philosophy, stats (10+ projects, ${KB.skills.categorized.length}+ technologies)\n` +
                  `• **Hobbies** — Pickle Ball, Billiards, Coffee, Hiking, Travel\n` +
                  `• **Projects** — ${KB.projects.length} detailed projects (DCMS, MINI LMS, Robotic Arm, POS System)\n` +
@@ -118,8 +395,9 @@ Here are some things you can ask me about:
                  `• **Skills** — categorized across 8 categories (Frontend, Backend, DB, IoT, DevOps, etc.)\n` +
                  `• **Contact** — email, phone, address, Facebook, GitHub, LinkedIn\n` +
                  `• **Services** — programming (SaaS, POS, Web) and non-programming (CCTV, electrical, maintenance)\n` +
-                 `• **49 Interview-style Q&A entries** with categorized keywords\n\n` +
-                 `I&apos;m constantly learning from Joenil&apos;s new achievements!`;
+                 `• **49 Interview-style Q&A entries** with categorized keywords\n` +
+                 `• **Utilities** — PH date/time, CV download, map directions, page navigation, skills match, interview question generator, project/cert filters\n\n` +
+                 `I'm constantly learning from Joenil's new achievements!`;
     }
 
     // =================== SERVICES ===================
@@ -129,12 +407,12 @@ Here are some things you can ask me about:
                  `**🔧 Technical Services:**\n${KB.services.nonProgramming.map(s => `• ${s}`).join("\n")}`;
     }
     else if (containsAny(msg, ["cctv"])) {
-      response = `📹 **CCTV Installation** is one of Joenil&apos;s technical services. He provides installation work alongside other services like Electrical Installation and Maintenance. This pairs well with his NC2 TESDA certification in Electrical Installation and Maintenance!`;
+      response = `📹 **CCTV Installation** is one of Joenil's technical services. He provides installation work alongside other services like Electrical Installation and Maintenance. This pairs well with his NC2 TESDA certification in Electrical Installation and Maintenance!`;
     }
 
     // =================== SKILLS / TECH ===================
     else if (containsAny(msg, ["skill", "tech stack", "technology", "know", "frontend", "backend", "devops", "tools", "what language", "programming", "stack"])) {
-      const parts = [];
+      const parts: string[] = [];
       if (containsAny(msg, ["frontend", "client side", "ui", "front-end"])) {
         parts.push(`**🎨 Frontend:** ${KB.skills.frontend.join(", ")}`);
       } else if (containsAny(msg, ["backend", "server side", "api", "back-end"])) {
@@ -159,7 +437,7 @@ Here are some things you can ask me about:
         if (KB.skills.iot.length) parts.push(`\n**🔌 IoT/Hardware:** ${KB.skills.iot.join(", ")}`);
         if (KB.skills.tools.length) parts.push(`\n**🛠️ Tools:** ${KB.skills.tools.join(", ")}`);
       }
-      response = `Joenil&apos;s technical arsenal (${KB.skills.categorized.length}+ total):\n\n` + parts.join("\n");
+      response = `Joenil's technical arsenal (${KB.skills.categorized.length}+ total):\n\n` + parts.join("\n");
     }
 
     // =================== CERTIFICATES ===================
@@ -172,7 +450,7 @@ Here are some things you can ask me about:
                      `• **Date:** ${t.date}\n` +
                      `• **Category:** ${t.category}\n` +
                      (t.link ? `• **View PDF Certificate:** [TOPCIT Certificate.pdf](${t.link})\n` : "") +
-                     `\nTOPCIT (Test of Practical Competency in IT) assesses practical IT competency — a strong validation of Joenil&apos;s hands-on skills.`;
+                     `\nTOPCIT (Test of Practical Competency in IT) assesses practical IT competency — a strong validation of Joenil's hands-on skills.`;
         }
       }
       else if (containsAny(msg, ["python"])) {
@@ -190,7 +468,7 @@ Here are some things you can ask me about:
         if (s) response = `⛓️ **${s.title}**\n• Issuer: ${s.issuer}\n• Date: ${s.date}\n• Category: ${s.category}`;
       }
       else if (containsAny(msg, ["java", "web certif", "database certif", "iot certif"])) {
-        const matchCat = containsAny(msg, ["java"]) ? "Programming" :
+        const matchCat: CertCategory = containsAny(msg, ["java"]) ? "Programming" :
                          containsAny(msg, ["web"]) ? "Web Development" :
                          containsAny(msg, ["database", "db"]) ? "Database" : "IoT";
         const found = KB.certifications.all.filter(c => c.category === matchCat && c.id.includes("cert"));
@@ -234,13 +512,12 @@ Here are some things you can ask me about:
         response = `🚗 **Car Rental Management System**\n\nOne project Joenil is particularly proud of! It includes:\n• Booking management\n• Customer management\n• Vehicle tracking\n• Reporting\n• Administrative dashboards\n\nThis system allowed applying both frontend and backend skills while solving a real business need.`;
       }
       else if (containsAny(msg, ["memofy"])) {
-        response = `🧠 **Memofy** — listed among Joenil&apos;s key projects (Web App). It showcases his ability to build creative, user-focused solutions!`;
+        response = `🧠 **Memofy** — listed among Joenil's key projects (Web App). It showcases his ability to build creative, user-focused solutions!`;
       }
       else {
         response = `🚀 **Joenil has worked on several key projects**:\n\n` +
                    KB.projects.map((p, i) => {
                      const extra: string[] = [];
-                     if (p.githubUrl) extra.push("🔗 GitHub");
                      if ((p as { documentationUrl?: string }).documentationUrl) extra.push("📄 Docs");
                      return `${i + 1}. **${p.title}** [${p.category}]\n   ${p.description.substring(0, 100)}${p.description.length > 100 ? "..." : ""}\n   Tech: ${p.technologies.slice(0, 4).join(", ")}${extra.length ? `\n   Links: ${extra.join(" • ")}` : ""}`;
                    }).join("\n\n") +
@@ -277,11 +554,6 @@ Here are some things you can ask me about:
                    KB.contact.socials.map(s => `• **${s.platform.charAt(0).toUpperCase() + s.platform.slice(1)}:** [${s.label}](${s.url})`).join("\n") +
                    `\n\nOr use the contact form on the Contact page of this site!`;
       }
-    }
-
-    // =================== CATEGORY-FOCUSED FALLBACKS ===================
-    else if (containsAny(msg, ["minimal"])) {
-      // explicit small-word edge
     }
 
     await new Promise(resolve => setTimeout(resolve, 800));

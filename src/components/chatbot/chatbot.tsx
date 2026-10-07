@@ -15,9 +15,84 @@ interface AIChatbotProps {
   inline?: boolean;
 }
 
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#39;/g, "'");
+}
+
+function renderInlineMarkdown(text: string, keyPrefix: string): React.ReactNode {
+  const decoded = decodeHtmlEntities(text);
+  const segments: React.ReactNode[] = [];
+  const regex = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\)|https?:\/\/[^\s]+)/g;
+  let last = 0;
+  let match: RegExpExecArray | null;
+  let idx = 0;
+  while ((match = regex.exec(decoded)) !== null) {
+    if (match.index > last) {
+      segments.push(decoded.slice(last, match.index));
+    }
+    const token = match[0];
+    // **bold**
+    if (token.startsWith("**") && token.endsWith("**") && token.length > 4) {
+      segments.push(
+        <strong key={`${keyPrefix}-b-${idx}`} className="font-semibold text-white">
+          {token.slice(2, -2)}
+        </strong>
+      );
+    }
+    // [label](url) markdown link
+    else if (token.startsWith("[") && token.includes("](") && token.endsWith(")")) {
+      const bracketClose = token.indexOf("](");
+      const label = token.slice(1, bracketClose);
+      const url = token.slice(bracketClose + 2, -1);
+      segments.push(
+        <a
+          key={`${keyPrefix}-l-${idx}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sky-400 hover:underline underline-offset-2"
+        >
+          {label}
+        </a>
+      );
+    }
+    // raw URL
+    else if (token.startsWith("http://") || token.startsWith("https://")) {
+      segments.push(
+        <a
+          key={`${keyPrefix}-u-${idx}`}
+          href={token}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sky-400 hover:underline break-all"
+        >
+          {token}
+        </a>
+      );
+    } else {
+      segments.push(token);
+    }
+    last = match.index + token.length;
+    idx++;
+  }
+  if (last < decoded.length) segments.push(decoded.slice(last));
+  return segments;
+}
+
 const TypewriterMessage = ({ content }: { content: string }) => {
   const [displayedText, setDisplayedText] = React.useState("");
   const [currentIndex, setCurrentIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    setDisplayedText("");
+    setCurrentIndex(0);
+  }, [content]);
 
   React.useEffect(() => {
     if (currentIndex < content.length) {
@@ -27,44 +102,31 @@ const TypewriterMessage = ({ content }: { content: string }) => {
       }, 5);
       return () => clearTimeout(timeout);
     }
-}, [currentIndex, content]);
+  }, [currentIndex, content]);
 
   return (
     <div className="whitespace-pre-wrap">
-      {displayedText.split(/(!\[.*?\]\(.*?\)|https?:\/\/[^\s]+)/g).map((part, i) => {
-        // Match Markdown Image: ![alt](url)
+      {displayedText.split(/(!\[.*?\]\(.*?\))/g).map((part, i) => {
         const imgMatch = part.match(/!\[(.*?)\]\((.*?)\)/);
         if (imgMatch) {
           return (
             <div key={i} className="mt-4 rounded-xl overflow-hidden border border-white/10 shadow-lg">
-              <img 
-                src={imgMatch[2]} 
-                alt={imgMatch[1]} 
+              <img
+                src={imgMatch[2]}
+                alt={imgMatch[1]}
                 className="w-full h-auto object-cover max-h-[200px]"
                 onLoad={() => {
-                  // Scroll to bottom when image loads
                   window.dispatchEvent(new CustomEvent("chat-scroll"));
                 }}
               />
             </div>
           );
         }
-        
-        // Match URL
-        if (part.match(/^https?:\/\//)) {
-          return (
-            <a 
-              key={i} 
-              href={part} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-sky-400 hover:underline break-all"
-            >
-              {part}
-            </a>
-          );
-        }
-        return part;
+        return (
+          <React.Fragment key={i}>
+            {renderInlineMarkdown(part, `seg-${i}`)}
+          </React.Fragment>
+        );
       })}
     </div>
   );
@@ -175,24 +237,22 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
       {messages.length === 1 && (
          <div className="px-6 pb-4 flex flex-wrap gap-2 max-h-[120px] overflow-y-auto scrollbar-hide shrink-0">
             {[
-              "Tell me about yourself.",
-              "What are your hobbies?",
-              "What certificates do you have?",
+              "Can I download your CV?",
+              "Show me your location.",
+              "Show me your projects.",
+              "Where is the source code?",
+              "What is the date today?",
+              "Give me a random interview question.",
+              "Does Joenil know React and Laravel?",
+              "Show programming certificates.",
+              "Which projects use Laravel?",
               "Tell me about TOPCIT.",
-              "What is your TESDA NC2?",
-              "What projects have you built?",
               "Tell me about the Dental Clinic System.",
-              "Tell me about the POS System.",
               "What tech stack do you use?",
-              "What frontend frameworks do you know?",
               "How can I contact you?",
-              "What's your phone number?",
-              "What are your GitHub and LinkedIn?",
-              "Why should we hire you?",
-              "What are your strengths?",
               "What services do you offer?",
               "Do you install CCTV?",
-              "How many years experience?"
+              "Why should we hire you?"
             ].map(s => (
                <button 
                   key={s}

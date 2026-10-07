@@ -18,17 +18,35 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [isZoomed, setIsZoomed] = React.useState(false);
 
-  const handleNext = (e?: React.MouseEvent) => {
+  const touchStartX = React.useRef<number | null>(null);
+  const touchEndX = React.useRef<number | null>(null);
+  const touchStartY = React.useRef<number | null>(null);
+  const touchEndY = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    if (isOpen && typeof document !== "undefined") {
+      document.body.style.overflow = "hidden";
+    } else if (typeof document !== "undefined") {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      if (typeof document !== "undefined") {
+        document.body.style.overflow = "";
+      }
+    };
+  }, [isOpen]);
+
+  const handleNext = React.useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
     setCurrentIndex((prev) => (prev + 1) % images.length);
     setIsZoomed(false);
-  };
+  }, [images.length]);
 
-  const handlePrev = (e?: React.MouseEvent) => {
+  const handlePrev = React.useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
     setIsZoomed(false);
-  };
+  }, [images.length]);
 
   const handleThumbnailClick = (idx: number) => {
     setCurrentIndex(idx);
@@ -42,11 +60,56 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
 
   const isVideo = (url: string) => url.toLowerCase().endsWith('.mp4');
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.changedTouches[0].screenX;
+    touchStartY.current = e.changedTouches[0].screenY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.changedTouches[0].screenX;
+    touchEndY.current = e.changedTouches[0].screenY;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current === null || touchEndX.current === null || touchStartY.current === null || touchEndY.current === null) return;
+    const dx = touchEndX.current - touchStartX.current;
+    const dy = touchEndY.current - touchStartY.current;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    const threshold = 50;
+
+    if (absDx > absDy && absDx > threshold) {
+      if (dx < 0) handleNext();
+      else handlePrev();
+    } else if (absDy > absDx && absDy > threshold && absDx < 30) {
+      if (dy < 0) onClose();
+    }
+
+    touchStartX.current = null;
+    touchEndX.current = null;
+    touchStartY.current = null;
+    touchEndY.current = null;
+  };
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") handleNext();
+      if (e.key === "ArrowLeft") handlePrev();
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isOpen, handleNext, handlePrev, onClose]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
         showCloseButton={false}
-        className="fixed inset-0 !max-w-none !w-screen !h-screen !p-0 !bg-black/98 !border-none overflow-hidden flex flex-col z-[200] !rounded-none !translate-x-0 !translate-y-0 !top-0 !left-0 duration-300"
+        className="fixed inset-0 !max-w-none !w-screen !h-screen !p-0 !bg-black/98 !border-none overflow-hidden flex flex-col z-[200] !rounded-none !translate-x-0 !translate-y-0 !top-0 !left-0 duration-300 touch-none"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <VisuallyHidden>
             <DialogTitle>{projectTitle} Full Screen View</DialogTitle>
@@ -58,7 +121,7 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
           {!isVideo(images[currentIndex]) && (
             <button 
               onClick={toggleZoom} 
-              className="p-2.5 sm:p-4 rounded-full bg-black/40 sm:bg-white/5 hover:bg-white/20 text-white backdrop-blur-xl transition-all border border-white/10 sm:border-white/20 shadow-2xl"
+              className="min-w-12 min-h-12 sm:min-w-0 sm:min-h-0 p-2.5 sm:p-4 rounded-full bg-black/40 sm:bg-white/5 hover:bg-white/20 text-white backdrop-blur-xl transition-all border border-white/10 sm:border-white/20 shadow-2xl touch-manipulation"
               title={isZoomed ? "Zoom Out" : "Zoom In"}
             >
               {isZoomed ? (
@@ -71,7 +134,7 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
           
           <button 
             onClick={onClose} 
-            className="p-2.5 sm:p-4 rounded-full bg-black/40 sm:bg-white/5 hover:bg-white/20 text-white backdrop-blur-xl transition-all border border-white/10 sm:border-white/20 group shadow-2xl"
+            className="min-w-12 min-h-12 sm:min-w-0 sm:min-h-0 p-2.5 sm:p-4 rounded-full bg-black/40 sm:bg-white/5 hover:bg-white/20 text-white backdrop-blur-xl transition-all border border-white/10 sm:border-white/20 group shadow-2xl touch-manipulation"
           >
             <X className="w-5 h-5 sm:w-8 sm:h-8 group-hover:rotate-90 transition-transform duration-300" />
           </button>
@@ -85,13 +148,13 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
           )}
           onClick={() => isZoomed && setIsZoomed(false)}
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             <motion.div
               key={currentIndex}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.1 }}
-              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
               className={cn(
                 "relative flex justify-center transition-all duration-300",
                 isZoomed ? "w-full py-20 sm:py-24 min-h-screen" : "w-full h-full items-center"
@@ -125,16 +188,16 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
             <>
               <button
                 onClick={handlePrev}
-                className="absolute left-1 sm:left-6 w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-black/20 sm:bg-white/5 border border-white/5 sm:border-white/10 flex items-center justify-center text-white hover:bg-sky-500 hover:scale-110 transition-all backdrop-blur-sm group z-[220]"
+                className="absolute left-1 sm:left-6 min-w-12 min-h-12 sm:min-w-0 sm:min-h-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-black/20 sm:bg-white/5 border border-white/5 sm:border-white/10 flex items-center justify-center text-white hover:bg-sky-500 hover:scale-110 transition-all backdrop-blur-sm group z-[220] touch-manipulation"
               >
-                <ChevronLeft className="w-5 h-5 sm:w-10 sm:h-10 group-active:-translate-x-1 transition-transform" />
+                <ChevronLeft className="w-6 h-6 sm:w-10 sm:h-10 group-active:-translate-x-1 transition-transform" />
               </button>
               
               <button
                 onClick={handleNext}
-                className="absolute right-1 sm:right-6 w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-black/20 sm:bg-white/5 border border-white/5 sm:border-white/10 flex items-center justify-center text-white hover:bg-sky-500 hover:scale-110 transition-all backdrop-blur-sm group z-[220]"
+                className="absolute right-1 sm:right-6 min-w-12 min-h-12 sm:min-w-0 sm:min-h-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-black/20 sm:bg-white/5 border border-white/5 sm:border-white/10 flex items-center justify-center text-white hover:bg-sky-500 hover:scale-110 transition-all backdrop-blur-sm group z-[220] touch-manipulation"
               >
-                <ChevronRight className="w-5 h-5 sm:w-10 sm:h-10 group-active:translate-x-1 transition-transform" />
+                <ChevronRight className="w-6 h-6 sm:w-10 sm:h-10 group-active:translate-x-1 transition-transform" />
               </button>
             </>
           )}
@@ -154,7 +217,7 @@ export function ProjectGallery({ isOpen, onClose, images, projectTitle }: Projec
                 <button
                   key={idx}
                   onClick={() => handleThumbnailClick(idx)}
-                  className={`relative flex-shrink-0 w-16 h-10 sm:w-24 sm:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 transition-all duration-300 ${
+                  className={`relative flex-shrink-0 w-16 h-12 sm:w-24 sm:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 transition-all duration-300 touch-manipulation ${
                     idx === currentIndex 
                       ? "border-sky-500 scale-110 shadow-[0_0_20px_rgba(14,165,233,0.3)]" 
                       : "border-white/10 opacity-40 hover:opacity-100 hover:border-white/30"

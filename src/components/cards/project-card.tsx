@@ -2,7 +2,7 @@
 
 import { Project } from "@/types/project";
 import { motion } from "framer-motion";
-import { Github, ExternalLink, ArrowRight, ImageIcon, FileText } from "lucide-react";
+import { ExternalLink, ArrowRight, ImageIcon, FileText } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -44,11 +44,6 @@ export function ProjectCard({ project, index, onClick }: ProjectCardProps) {
         {/* Overlay Links */}
         <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-sky-500/10 backdrop-blur-[2px]">
            <div className="flex space-x-3">
-              {project.githubUrl && (
-                <Link href={project.githubUrl} className="w-10 h-10 rounded-full bg-foreground text-background flex items-center justify-center hover:scale-110 transition-transform">
-                  <Github className="w-5 h-5" />
-                </Link>
-              )}
               {project.liveUrl && (
                 <Link href={project.liveUrl} className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center hover:scale-110 transition-transform">
                   <ExternalLink className="w-5 h-5" />

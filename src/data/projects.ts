@@ -24,7 +24,6 @@ export const projects: Project[] = [
       "Professional Branding: Each clinic gets its own private, branded space, giving your practice a modern and professional digital presence."
     ],
     imageUrl: "/dcms-projects/frontpage.png",
-    githubUrl: "https://github.com/Joenstalker/new_dcms.git",
     category: "Fullstack",
     gallery: [
       "/dcms-projects/frontpage.png",
@@ -70,7 +69,6 @@ export const projects: Project[] = [
       "Student Records: Manage student data and borrowing history."
     ],
     imageUrl: "/mini-lms-projects/frontpage.png",
-    githubUrl: "https://github.com/joenil-acero",
     category: "Fullstack",
     gallery: [
       "/mini-lms-projects/frontpage.png",
@@ -94,7 +92,6 @@ export const projects: Project[] = [
       "Collaborative Design: Built through group teamwork and technical problem-solving."
     ],
     imageUrl: "/robotic-arm-projects/frontpage.png",
-    githubUrl: "https://github.com/joenil-acero",
     documentationUrl: "/robotic-arm-projects/robotic-arm.pdf",
     category: "IoT",
     gallery: [
@@ -120,7 +117,6 @@ export const projects: Project[] = [
     ],
     features: ["Inventory management", "POS", "Sales reports"],
     imageUrl: "/pos-projects/POS Web Landing Page.png",
-    githubUrl: "https://github.com/joenil-acero",
     category: "Desktop",
     gallery: [
       "/pos-projects/POS Web Landing Page.png",
