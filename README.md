@@ -82,4 +82,4 @@ The admin dashboard also manages the homepage introduction, profile image, About
 
 1. Run [`supabase/portfolio-homepage.sql`](./supabase/portfolio-homepage.sql) in Supabase after [`supabase/portfolio-inbox.sql`](./supabase/portfolio-inbox.sql). The image upload feature also requires [`supabase/portfolio-content.sql`](./supabase/portfolio-content.sql) for its Storage bucket and upload policy.
 2. Sign in, open `/admin`, and choose **Homepage & profile**.
-3. Edit the sections and save. Use the upload buttons for the profile and achievement images. The existing homepage content is prefilled as a starting point.
+3. Edit the sections and save. Uploading a new profile photo adds it to the saved Profile image library without deleting previous uploads; use **Choose saved image** to switch back to an earlier upload or the original `/profile.png`. The existing homepage content is prefilled as a starting point.

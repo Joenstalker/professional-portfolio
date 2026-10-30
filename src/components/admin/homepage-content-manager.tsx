@@ -1,16 +1,26 @@
 "use client";
 
 import * as React from "react";
-import { ImagePlus, RefreshCw, Save } from "lucide-react";
+import Image from "next/image";
+import { ImagePlus, RefreshCw, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { showErrorAlert, showSuccessToast } from "@/lib/alerts";
 import { defaultHomepageContent, type HomepageContent } from "@/data/homepage";
+
+interface LibraryImage {
+  name: string;
+  url: string;
+  createdAt: string | null;
+}
 
 export function HomepageContentManager() {
   const [content, setContent] = React.useState<HomepageContent>(defaultHomepageContent);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
   const [uploadingImage, setUploadingImage] = React.useState<"profile" | "achievement" | null>(null);
+  const [isProfileLibraryOpen, setIsProfileLibraryOpen] = React.useState(false);
+  const [profileImages, setProfileImages] = React.useState<LibraryImage[]>([]);
+  const [isLibraryLoading, setIsLibraryLoading] = React.useState(false);
 
   const loadContent = React.useCallback(async () => {
     setIsLoading(true);
@@ -81,6 +91,30 @@ export function HomepageContentManager() {
     }
   }
 
+  async function openProfileLibrary() {
+    setIsProfileLibraryOpen(true);
+    setIsLibraryLoading(true);
+    try {
+      const response = await fetch("/api/admin/content/images", { cache: "no-store" });
+      const data: unknown = await response.json();
+      if (!response.ok) throw new Error(readError(data, "Unable to load saved images."));
+      if (
+        !isRecord(data) ||
+        !Array.isArray(data.images) ||
+        !data.images.every(isLibraryImage)
+      ) {
+        throw new Error("The image library returned an invalid response.");
+      }
+      setProfileImages(data.images);
+    } catch (error) {
+      console.error("Unable to load homepage image library:", error);
+      setIsProfileLibraryOpen(false);
+      await showErrorAlert("Could not load image library", error instanceof Error ? error.message : "Unable to load saved images.");
+    } finally {
+      setIsLibraryLoading(false);
+    }
+  }
+
   async function saveContent(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
@@ -135,7 +169,13 @@ export function HomepageContentManager() {
           </div>
           <Field label="Introduction"><textarea required maxLength={3000} rows={4} value={content.hero.summary} onChange={(event) => updateHero("summary", event.target.value)} className={inputClass} /></Field>
           <Field label="Profile image URL"><input required maxLength={2048} value={content.hero.imageUrl} onChange={(event) => updateHero("imageUrl", event.target.value)} className={inputClass} /></Field>
-          <ImageUploadButton target="profile" uploading={uploadingImage === "profile"} onUpload={uploadImage} />
+          <div className="flex flex-wrap gap-3">
+            <ImageUploadButton target="profile" uploading={uploadingImage === "profile"} onUpload={uploadImage} />
+            <Button type="button" variant="outline" onClick={() => void openProfileLibrary()}>
+              Choose saved image
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">Uploading adds a new saved image and selects it. It does not delete or replace previous uploads.</p>
         </fieldset>
 
         <fieldset className={fieldsetClass}>
@@ -180,7 +220,106 @@ export function HomepageContentManager() {
           </Button>
         </div>
       </form>
+      {isProfileLibraryOpen && (
+        <ProfileImageLibrary
+          images={profileImages}
+          currentImageUrl={content.hero.imageUrl}
+          isLoading={isLibraryLoading}
+          onClose={() => setIsProfileLibraryOpen(false)}
+          onSelect={(url) => {
+            updateHero("imageUrl", url);
+            setIsProfileLibraryOpen(false);
+          }}
+        />
+      )}
     </section>
+  );
+}
+
+function ProfileImageLibrary({
+  images,
+  currentImageUrl,
+  isLoading,
+  onClose,
+  onSelect,
+}: {
+  images: LibraryImage[];
+  currentImageUrl: string;
+  isLoading: boolean;
+  onClose: () => void;
+  onSelect: (url: string) => void;
+}) {
+  const savedUrls = new Set(images.map((image) => image.url));
+  const defaultProfileUrl = "/profile.png";
+  const hasDefault = currentImageUrl === defaultProfileUrl || !savedUrls.has(defaultProfileUrl);
+
+  return (
+    <div className="fixed inset-0 z-[260] overflow-y-auto bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="profile-library-title">
+      <section className="mx-auto my-6 max-w-4xl rounded-2xl border border-border bg-background p-5 shadow-2xl sm:p-7">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <div>
+            <h2 id="profile-library-title" className="text-2xl font-bold text-foreground">Profile image library</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Choose a saved photo. Selecting one does not delete other images.</p>
+          </div>
+          <Button type="button" variant="outline" onClick={onClose} aria-label="Close image library">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {isLoading ? (
+          <p className="py-12 text-center text-muted-foreground">Loading saved images…</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            {hasDefault && (
+              <ImageChoice
+                label="Original profile photo"
+                url={defaultProfileUrl}
+                selected={currentImageUrl === defaultProfileUrl}
+                onSelect={onSelect}
+              />
+            )}
+            {images.map((image) => (
+              <ImageChoice
+                key={image.name}
+                label={image.createdAt ? new Date(image.createdAt).toLocaleDateString() : image.name}
+                url={image.url}
+                selected={currentImageUrl === image.url}
+                onSelect={onSelect}
+              />
+            ))}
+            {images.length === 0 && !hasDefault && (
+              <p className="col-span-full py-8 text-center text-sm text-muted-foreground">No saved profile images found. Upload a photo to add it to this library.</p>
+            )}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function ImageChoice({
+  label,
+  url,
+  selected,
+  onSelect,
+}: {
+  label: string;
+  url: string;
+  selected: boolean;
+  onSelect: (url: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(url)}
+      className={`overflow-hidden rounded-xl border text-left transition-colors ${selected ? "border-sky-500 ring-2 ring-sky-500" : "border-border hover:border-sky-500/60"}`}
+      aria-pressed={selected}
+    >
+      <div className="relative aspect-square w-full bg-muted">
+        <Image src={url} alt="" fill unoptimized sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
+      </div>
+      <span className="block truncate px-3 py-2 text-xs text-foreground">{selected ? `Selected · ${label}` : label}</span>
+    </button>
   );
 }
 
@@ -211,6 +350,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function isLibraryImage(value: unknown): value is LibraryImage {
+  return (
+    isRecord(value) &&
+    typeof value.name === "string" &&
+    typeof value.url === "string" &&
+    (typeof value.createdAt === "string" || value.createdAt === null)
+  );
 }
 
 function isHomepageContent(value: unknown): value is HomepageContent {
