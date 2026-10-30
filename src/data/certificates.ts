@@ -5,10 +5,21 @@ export interface Certificate {
   date: string;
   imageUrl: string;
   link?: string;
+  showOnCertificatesPage?: boolean;
   category: "Programming" | "Web Development" | "Database" | "IoT" | "Blockchain" | "Networking";
 }
 
 export const certificates: Certificate[] = [
+  {
+    id: "topcit-level-4",
+    title: "Level 4 (Proficient) Certification - 14th TOPCIT Philippines",
+    issuer: "TOPCIT Philippines / Bukidnon State University",
+    date: "July 23, 2026",
+    imageUrl: "/topcit-level-4-achievement.png",
+    showOnCertificatesPage: false,
+    link: "/Download%20CV/TOPCIT%20Certificate.pdf",
+    category: "Programming"
+  },
   {
     id: "topcit",
     title: "TOPCIT - Test of Practical Competency in IT",

@@ -10,6 +10,7 @@ import { ExternalLink, Award, X, Maximize2 } from "lucide-react";
 
 export default function CertificatesPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const visibleCertificates = certificates.filter((cert) => cert.showOnCertificatesPage !== false);
 
   useEffect(() => {
     if (selectedImage && typeof document !== "undefined") {
@@ -48,7 +49,7 @@ export default function CertificatesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
-            {certificates.map((cert, index) => (
+            {visibleCertificates.map((cert, index) => (
               <motion.div
                 key={cert.id}
                 initial={{ opacity: 0, y: 20 }}
