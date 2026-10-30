@@ -5,8 +5,8 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { motion, AnimatePresence } from "framer-motion";
 import { AIChatbot } from "@/components/chatbot/chatbot";
+import { ContactForm } from "@/components/contact/contact-form";
 import { Mail, Github, Linkedin, Facebook, MapPin, Phone, Award, X, Maximize2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
@@ -174,30 +174,26 @@ export default function ContactPage() {
                </div>
             </motion.div>
 
-            {/* Email Button Column */}
+            {/* Contact Form Column */}
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
               className="lg:col-span-1"
             >
-               <div className="bg-card border border-border rounded-3xl p-8 h-full flex flex-col justify-center">
-                  <div className="text-center space-y-8">
-                    <div className="w-24 h-24 bg-sky-500/10 rounded-3xl flex items-center justify-center mx-auto">
-                      <Mail className="w-12 h-12 text-sky-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-foreground mb-2">Send me an Email</h3>
-                      <p className="text-muted-foreground">Click the button below to compose an email in Gmail</p>
-                    </div>
-                    <Button 
-                      onClick={handleEmailClick}
-                      className="w-full bg-sky-500 hover:bg-sky-600 h-16 text-xl font-bold rounded-xl shadow-lg shadow-sky-500/20 transition-all"
-                    >
-                      Email Me
-                      <Mail className="ml-3 w-6 h-6" />
-                    </Button>
+               <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 h-full">
+                  <div className="mb-6">
+                    <h3 className="text-2xl font-bold text-foreground mb-2">Send me a Message</h3>
+                    <p className="text-sm text-muted-foreground">Your message will go straight to my private portfolio inbox.</p>
                   </div>
+                  <ContactForm />
+                  <button
+                    type="button"
+                    onClick={handleEmailClick}
+                    className="mt-4 w-full text-center text-sm text-sky-500 hover:underline"
+                  >
+                    Prefer email? Open Gmail
+                  </button>
                </div>
             </motion.div>
           </div>

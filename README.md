@@ -45,3 +45,16 @@ The header displays total page visits. Each page entry, refresh, or in-site navi
 3. Redeploy the site.
 
 The counter counts page views, not unique people. Repeated visits, bots, and refreshes are counted; it does not identify visitors. The total is stored in Supabase and is shared across devices.
+
+## Private contact inbox
+
+The Contact page saves submissions to Supabase. The private owner dashboard is available at `/login` and `/admin`; there is intentionally no public signup or admin navigation link.
+
+1. In the Supabase SQL Editor, run [`supabase/portfolio-inbox.sql`](./supabase/portfolio-inbox.sql).
+2. In Supabase, open **Authentication → Users → Add user**. Create the owner account using an email address and a new, unique password. Confirm the email if prompted.
+3. Copy the owner user's UUID from the Users list. In the SQL file's final example, replace the placeholder UUID and run that `insert` statement in the SQL Editor. This allowlists that account as the portfolio admin.
+4. In Supabase Authentication settings, disable public signups if this project does not need visitor accounts. The admin UUID allowlist and database policies still protect inbox access.
+5. Ensure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are set in the Vercel project, then redeploy.
+6. Visit `/login`, sign in with the owner email and password, and manage messages at `/admin`.
+
+The SQL permits anonymous visitors to insert validated contact messages, but only the allowlisted admin can read or update them. The form includes a honeypot and server-side validation. For stronger spam prevention and email alerts, add a CAPTCHA provider and a transactional email service in a later step.
