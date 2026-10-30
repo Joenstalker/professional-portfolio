@@ -11,6 +11,7 @@ import { ProjectGallery } from "@/components/cards/project-gallery";
 import { projects } from "@/data/projects";
 import { Project } from "@/types/project";
 import { usePublishedContent } from "@/lib/use-published-content";
+import { useHomepageContent } from "@/lib/use-homepage-content";
 import { AIChatbot } from "@/components/chatbot/chatbot";
 import Link from "next/link";
 import Image from "next/image";
@@ -18,6 +19,7 @@ import { ArrowRight, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
+  const homepage = useHomepageContent();
   const allProjects = usePublishedContent<Project>("/api/content/projects", projects.map((project, index) => ({ ...project, isFeatured: index < 3 })));
   const featuredProjects = allProjects.filter((project) => project.isFeatured);
   const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
@@ -26,19 +28,20 @@ export default function Home() {
     <main className="min-h-screen bg-background selection:bg-sky-500/30">
       <Navbar />
       
-      <Hero />
+      <Hero content={homepage.hero} />
       
-      <About />
+      <About content={homepage.about} />
 
-      <section className="py-20 sm:py-24 bg-accent/20">
+      {homepage.achievement.enabled && <section className="py-20 sm:py-24 bg-accent/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
               <Image
-                src="/topcit-level-4-achievement.png"
-                alt="BukSU announcement recognizing five BSIT students, including Joenil Acero, for earning Level 4 certification in the 14th TOPCIT Philippines"
+                src={homepage.achievement.imageUrl}
+                alt={homepage.achievement.imageAlt}
                 width={768}
                 height={768}
+                unoptimized
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="w-full h-auto"
               />
@@ -50,13 +53,13 @@ export default function Home() {
                 Featured Achievement
               </div>
               <h2 className="text-3xl md:text-5xl font-bold text-foreground leading-tight">
-                TOPCIT Level 4 <span className="text-sky-400">(Proficient)</span>
+                {homepage.achievement.title} <span className="text-sky-400">{homepage.achievement.highlight}</span>
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                I was one of five Bukidnon State University BSIT students to earn Level 4 certification in the 14th TOPCIT Philippines. Among 164 BukSU examinees, this recognition reflects strong practical skills in software development, data management, system architecture, and IT business.
+                {homepage.achievement.description}
               </p>
               <p className="text-sm font-medium text-muted-foreground">
-                14th TOPCIT Philippines · July 23, 2026
+                {homepage.achievement.eventName} · {homepage.achievement.date}
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button asChild className="bg-sky-500 text-white hover:bg-sky-600">
@@ -64,16 +67,18 @@ export default function Home() {
                     View Certificates & Achievements <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="border-border text-foreground hover:bg-accent">
-                  <Link href="/Download%20CV/TOPCIT%20Certificate.pdf" target="_blank">
-                    View TOPCIT Certificate
-                  </Link>
-                </Button>
+                {homepage.achievement.certificateUrl && (
+                  <Button asChild variant="outline" className="border-border text-foreground hover:bg-accent">
+                    <Link href={homepage.achievement.certificateUrl} target="_blank">
+                      View Certificate
+                    </Link>
+                  </Button>
+                )}
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </section>}
       
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

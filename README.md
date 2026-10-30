@@ -75,3 +75,11 @@ The private `/admin` dashboard can manage projects and certificates. You can add
 4. Add or edit items. Use **Published** to control public visibility and **Feature on homepage** to choose homepage projects. Uploaded files are served from the public `portfolio-media` Storage bucket; only the allowlisted owner can upload them.
 
 Before the SQL is run or while the content tables are unavailable, public pages keep showing the existing static portfolio content. After running the SQL, import each collection from `/admin` before expecting its entries to appear publicly; an initialized collection with no published entries intentionally shows no entries.
+
+## Homepage and profile manager
+
+The admin dashboard also manages the homepage introduction, profile image, About section and statistics, and featured achievement. Updates are saved to Supabase and displayed on the homepage. Image uploads use the existing public `portfolio-media` bucket.
+
+1. Run [`supabase/portfolio-homepage.sql`](./supabase/portfolio-homepage.sql) in Supabase after [`supabase/portfolio-inbox.sql`](./supabase/portfolio-inbox.sql). The image upload feature also requires [`supabase/portfolio-content.sql`](./supabase/portfolio-content.sql) for its Storage bucket and upload policy.
+2. Sign in, open `/admin`, and choose **Homepage & profile**.
+3. Edit the sections and save. Use the upload buttons for the profile and achievement images. The existing homepage content is prefilled as a starting point.

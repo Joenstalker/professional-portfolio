@@ -6,17 +6,18 @@ import { Code, Briefcase, Clock, Heart, Terminal, ExternalLink, ChevronRight } f
 import { Button } from "@/components/ui/button";
 import { skills } from "@/data/skills";
 import Link from "next/link";
+import type { HomepageContent } from "@/data/homepage";
 
-export function About() {
+export function About({ content }: { content: HomepageContent["about"] }) {
   const marqueeSkills = skills.filter(s => 
     ["Frontend", "Backend", "Database", "Tools", "IoT/Hardware", "Deployment"].includes(s.category)
   );
 
-  const stats = [
-    { icon: <Briefcase className="w-5 h-5" />, value: "10+", label: "Projects Completed" },
-    { icon: <Code className="w-5 h-5" />, value: `${skills.length}+`, label: "Technologies" },
-    { icon: <Clock className="w-5 h-5" />, value: "3+", label: "Years of Experience" },
-    { icon: <Heart className="w-5 h-5" />, value: "100%", label: "Commitment" },
+  const statIcons = [
+    <Briefcase key="projects" className="w-5 h-5" />,
+    <Code key="technologies" className="w-5 h-5" />,
+    <Clock key="experience" className="w-5 h-5" />,
+    <Heart key="commitment" className="w-5 h-5" />,
   ];
 
   return (
@@ -33,12 +34,11 @@ export function About() {
               <span>About Me</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground leading-tight">
-              Turning Ideas Into <br />
-              <span className="text-sky-400">Real-World Solutions</span>
+              {content.heading} <br />
+              <span className="text-sky-400">{content.accentHeading}</span>
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              I&apos;m a passionate developer with experience in building web applications, desktop systems, and interactive games. 
-              I love combining creativity and logic to develop systems that are not only functional but also meaningful.
+              {content.description}
             </p>
 
             <Button 
@@ -53,7 +53,7 @@ export function About() {
           </motion.div>
 
           <div className="grid grid-cols-2 gap-4">
-            {stats.map((stat, idx) => (
+            {content.stats.map((stat, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
@@ -63,7 +63,7 @@ export function About() {
                 className="p-6 rounded-2xl bg-card border border-border flex flex-col items-center text-center space-y-3"
               >
                 <div className="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400">
-                  {stat.icon}
+                  {statIcons[idx]}
                 </div>
                 <div className="text-3xl font-bold text-foreground">{stat.value}</div>
                 <div className="text-xs text-muted-foreground uppercase tracking-widest font-bold">{stat.label}</div>

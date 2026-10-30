@@ -3,7 +3,9 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Github, Linkedin, Facebook, Mail, Code, Database, Cpu, Globe } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import type { HomepageContent } from "@/data/homepage";
 
 const floatingIcons = [
   { icon: <Code className="w-6 h-6" />, label: "MERN Stack", top: "10%", right: "10%" },
@@ -12,7 +14,7 @@ const floatingIcons = [
   { icon: <Globe className="w-6 h-6" />, label: "Java", top: "20%", left: "10%" },
 ];
 
-export function Hero() {
+export function Hero({ content }: { content: HomepageContent["hero"] }) {
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-background">
       {/* Background radial gradient */}
@@ -26,15 +28,15 @@ export function Hero() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <p className="text-lg sm:text-xl text-foreground mb-2">Hi, I&apos;m</p>
+            <p className="text-lg sm:text-xl text-foreground mb-2">{content.greeting}</p>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-extrabold text-foreground mb-4 leading-tight">
-              Joenil <span className="text-sky-400">Acero</span>
+              {content.firstName} <span className="text-sky-400">{content.lastName}</span>
             </h1>
             <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-muted-foreground mb-6 flex items-center">
-              Full-Stack Developer Building Secure, Practical Information Systems
+              {content.role}
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mb-10 leading-relaxed">
-              I design and develop web-based systems for organizations — from role-based management platforms and SaaS applications to document-focused public-service solutions with robust databases and access control.
+              {content.summary}
             </p>
             
             <div className="flex flex-wrap gap-4 mb-10">
@@ -105,11 +107,14 @@ export function Hero() {
             {/* Developer Image */}
             <div className="relative z-10 w-[280px] h-[350px] sm:w-[400px] sm:h-[500px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-slate-900">
                <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent z-20" />
-               <img 
-                   src="/profile.png" 
-                   alt="Joenil Acero" 
-                   className="w-full h-full object-cover object-top"
-                />
+               <Image
+                 src={content.imageUrl}
+                 alt={`${content.firstName} ${content.lastName}`}
+                 fill
+                 unoptimized
+                 sizes="(max-width: 640px) 280px, 400px"
+                 className="object-cover object-top"
+               />
             </div>
             
             {/* Floating Code Snippet */}

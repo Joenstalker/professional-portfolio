@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { certificates, type Certificate } from "@/data/certificates";
 import { projects } from "@/data/projects";
+import { defaultHomepageContent, type HomepageContent } from "@/data/homepage";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 import type { Project } from "@/types/project";
 
@@ -56,4 +57,22 @@ export async function getPublishedCertificates(): Promise<Certificate[]> {
     "portfolio_certificates",
     certificates,
   );
+}
+
+export async function getPublishedHomepageContent(): Promise<HomepageContent> {
+  const supabase = createPublicClient();
+  if (!supabase) return defaultHomepageContent;
+
+  const { data, error } = await supabase
+    .from("portfolio_homepage")
+    .select("content")
+    .eq("id", "main")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Unable to load public homepage content:", error.message);
+    return defaultHomepageContent;
+  }
+  if (!data) return defaultHomepageContent;
+  return data.content as HomepageContent;
 }
