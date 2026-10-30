@@ -34,3 +34,14 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Portfolio visit counter
+
+The header displays total page visits. Each page entry, refresh, or in-site navigation increments the shared counter, including visits from the site owner. The counter uses Supabase and shows as unavailable until configured.
+
+1. Run [`supabase/portfolio-visit-counter.sql`](./supabase/portfolio-visit-counter.sql) in the Supabase SQL Editor.
+2. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to the Vercel project environment variables. For local development, put them in `.env.local`.
+   - These values are designed to be publishable. The database table remains protected by row-level security, and the public key can only execute the counter function granted by the SQL script.
+3. Redeploy the site.
+
+The counter counts page views, not unique people. Repeated visits, bots, and refreshes are counted; it does not identify visitors. The total is stored in Supabase and is shared across devices.

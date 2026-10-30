@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Menu, X, Download, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
+import { useVisitCount } from "@/components/analytics/visit-counter";
 
 const navItems = [
   { name: "Home", href: "/" },
@@ -22,7 +23,9 @@ export function Navbar() {
   const [isOpen, setIsOpen] = React.useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const { count, unavailable } = useVisitCount();
   const [mounted, setMounted] = React.useState(false);
+  const formattedCount = count === null ? "—" : new Intl.NumberFormat().format(count);
 
   React.useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
@@ -70,6 +73,16 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center space-x-4">
+            <div
+              aria-live="polite"
+              aria-label={unavailable ? "Visit count unavailable" : `Portfolio visits: ${formattedCount}`}
+              title={unavailable ? "Visit count unavailable" : "Total portfolio page visits"}
+              className="flex items-center gap-2 rounded-xl border border-border/50 bg-accent/50 px-3 py-2 text-xs font-medium text-muted-foreground"
+            >
+              <span>Visits</span>
+              <span className="font-bold tabular-nums text-foreground">{formattedCount}</span>
+            </div>
+
             {mounted && (
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
