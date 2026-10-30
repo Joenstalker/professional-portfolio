@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { MessageInbox } from "@/components/admin/message-inbox";
+import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { SignOutButton } from "@/components/admin/sign-out-button";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 import { getPortfolioAdminClient } from "@/lib/supabase/admin";
@@ -14,7 +14,7 @@ export default async function AdminPage() {
         <section className="mx-auto max-w-xl rounded-3xl border border-border bg-card p-8">
           <h1 className="text-2xl font-bold text-foreground">Admin setup required</h1>
           <p className="mt-3 text-muted-foreground">
-            Configure the Supabase project URL and publishable key, then run the admin inbox SQL setup.
+            Configure the Supabase project URL and publishable key, then run the portfolio SQL setup.
           </p>
         </section>
       </main>
@@ -30,7 +30,7 @@ export default async function AdminPage() {
         <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground">← Back to portfolio</Link>
         <SignOutButton />
       </div>
-      <MessageInbox />
+      <AdminDashboard />
     </main>
   );
 }

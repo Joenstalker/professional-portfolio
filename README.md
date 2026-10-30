@@ -64,3 +64,14 @@ The Contact page saves submissions to Supabase. The private owner dashboard is a
 6. Visit `/login`, sign in with the owner email and password, and manage messages at `/admin`.
 
 The SQL permits anonymous visitors to insert validated contact messages, but only the allowlisted admin can read or update them. The form includes a honeypot and server-side validation. For stronger spam prevention and email alerts, add a CAPTCHA provider and a transactional email service in a later step.
+
+## Portfolio content manager
+
+The private `/admin` dashboard can manage projects and certificates. You can add, edit, publish, hide, reorder, feature projects on the homepage, and upload JPG, PNG, or WebP images up to 5 MB. Published changes appear on the public Projects and Certificates pages; unpublished entries remain available in the admin.
+
+1. Run [`supabase/portfolio-content.sql`](./supabase/portfolio-content.sql) in the Supabase SQL Editor **after** [`supabase/portfolio-inbox.sql`](./supabase/portfolio-inbox.sql), because the content policies use its `is_portfolio_admin()` function.
+2. Sign in at `/login`, open `/admin`, and choose **Projects & certificates**.
+3. If a collection is empty, choose **Import existing** to copy the current static entries into Supabase. This import is only available while that collection has no records, so it will not overwrite managed edits.
+4. Add or edit items. Use **Published** to control public visibility and **Feature on homepage** to choose homepage projects. Uploaded files are served from the public `portfolio-media` Storage bucket; only the allowlisted owner can upload them.
+
+Before the SQL is run or while the content tables are unavailable, public pages keep showing the existing static portfolio content. After running the SQL, import each collection from `/admin` before expecting its entries to appear publicly; an initialized collection with no published entries intentionally shows no entries.

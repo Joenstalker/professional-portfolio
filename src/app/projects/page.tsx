@@ -7,10 +7,12 @@ import { ProjectCard } from "@/components/cards/project-card";
 import { ProjectGallery } from "@/components/cards/project-gallery";
 import { projects } from "@/data/projects";
 import { Project } from "@/types/project";
+import { usePublishedContent } from "@/lib/use-published-content";
 import { AIChatbot } from "@/components/chatbot/chatbot";
 
 export default function ProjectsPage() {
   const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
+  const publishedProjects = usePublishedContent<Project>("/api/content/projects", projects);
 
   return (
     <main className="min-h-screen bg-background">
@@ -26,7 +28,7 @@ export default function ProjectsPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project, index) => (
+            {publishedProjects.map((project, index) => (
               <ProjectCard 
                 key={project.id} 
                 project={project} 
@@ -35,6 +37,9 @@ export default function ProjectsPage() {
               />
             ))}
           </div>
+          {publishedProjects.length === 0 && (
+            <p className="mt-8 text-center text-muted-foreground">Projects will be added here soon.</p>
+          )}
         </div>
       </section>
 

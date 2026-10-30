@@ -4,13 +4,15 @@ import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { certificates } from "@/data/certificates";
+import { usePublishedContent } from "@/lib/use-published-content";
 import { motion, AnimatePresence } from "framer-motion";
 import { AIChatbot } from "@/components/chatbot/chatbot";
 import { ExternalLink, Award, X, Maximize2 } from "lucide-react";
 
 export default function CertificatesPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const visibleCertificates = certificates.filter((cert) => cert.showOnCertificatesPage !== false);
+  const publishedCertificates = usePublishedContent("/api/content/certificates", certificates);
+  const visibleCertificates = publishedCertificates.filter((cert) => cert.showOnCertificatesPage !== false);
 
   useEffect(() => {
     if (selectedImage && typeof document !== "undefined") {
@@ -107,6 +109,9 @@ export default function CertificatesPage() {
               </motion.div>
             ))}
           </div>
+          {visibleCertificates.length === 0 && (
+            <p className="text-center text-muted-foreground">Certificates and achievements will be added here soon.</p>
+          )}
         </div>
       </section>
 

@@ -10,4 +10,5 @@ export interface Project {
   documentationUrl?: string;
   category: "Fullstack" | "Frontend" | "Backend" | "IoT" | "Game Dev" | "Desktop";
   gallery?: string[];
+  isFeatured?: boolean;
 }

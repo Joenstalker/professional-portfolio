@@ -10,6 +10,7 @@ import { ProjectCard } from "@/components/cards/project-card";
 import { ProjectGallery } from "@/components/cards/project-gallery";
 import { projects } from "@/data/projects";
 import { Project } from "@/types/project";
+import { usePublishedContent } from "@/lib/use-published-content";
 import { AIChatbot } from "@/components/chatbot/chatbot";
 import Link from "next/link";
 import Image from "next/image";
@@ -17,7 +18,8 @@ import { ArrowRight, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const featuredProjects = projects.slice(0, 3);
+  const allProjects = usePublishedContent<Project>("/api/content/projects", projects.map((project, index) => ({ ...project, isFeatured: index < 3 })));
+  const featuredProjects = allProjects.filter((project) => project.isFeatured);
   const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
 
   return (
