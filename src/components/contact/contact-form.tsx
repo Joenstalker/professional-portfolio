@@ -3,9 +3,9 @@
 import * as React from "react";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { showErrorAlert, showSuccessAlert } from "@/lib/alerts";
 
 export function ContactForm() {
-  const [status, setStatus] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -15,7 +15,6 @@ export function ContactForm() {
     const form = event.currentTarget;
     const formData = new FormData(form);
     setIsSubmitting(true);
-    setStatus(null);
 
     try {
       const response = await fetch("/api/contact", {
@@ -40,10 +39,13 @@ export function ContactForm() {
       }
 
       form.reset();
-      setStatus("Thanks! Your message has been sent.");
+      await showSuccessAlert("Message sent!", "Thanks for reaching out. Your message has been delivered.");
     } catch (error) {
       console.error("Contact form submission failed:", error);
-      setStatus(error instanceof Error ? error.message : "Your message could not be sent. Please try again.");
+      await showErrorAlert(
+        "Message not sent",
+        error instanceof Error ? error.message : "Your message could not be sent. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -105,9 +107,6 @@ export function ContactForm() {
         <Send className="ml-2 h-4 w-4" />
       </Button>
 
-      <p aria-live="polite" className="min-h-5 text-sm text-muted-foreground">
-        {status}
-      </p>
     </form>
   );
 }

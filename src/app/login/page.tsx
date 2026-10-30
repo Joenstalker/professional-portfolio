@@ -7,11 +7,11 @@ import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { showErrorAlert } from "@/lib/alerts";
 
 export default function LoginPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -22,7 +22,6 @@ export default function LoginPage() {
     const password = String(formData.get("password") ?? "");
 
     setIsSubmitting(true);
-    setErrorMessage(null);
 
     try {
       if (!getSupabaseConfig()) {
@@ -50,14 +49,21 @@ export default function LoginPage() {
       }
       if (!isAdmin) {
         await supabase.auth.signOut();
-        throw new Error("This account can sign in, but it is not allowlisted as the portfolio owner. Add its Supabase Auth user UUID to public.portfolio_admins.");
+        await showErrorAlert(
+          "Owner access not enabled yet",
+          "Your email and password are correct, but this Auth user is not in public.portfolio_admins yet. In Supabase, open Authentication → Users and copy this user's UUID. In SQL Editor, run: INSERT INTO public.portfolio_admins (user_id) VALUES ('YOUR-USER-UUID') ON CONFLICT (user_id) DO NOTHING; Replace YOUR-USER-UUID with the copied UUID, run the query, then sign in again."
+        );
+        return;
       }
 
       router.replace("/admin");
       router.refresh();
     } catch (error) {
       console.error("Portfolio admin login failed:", error);
-      setErrorMessage(error instanceof Error ? error.message : "Unable to sign in. Please try again.");
+      await showErrorAlert(
+        "Sign-in failed",
+        error instanceof Error ? error.message : "Unable to sign in. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -97,11 +103,6 @@ export default function LoginPage() {
                 className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-sky-500/40"
               />
             </div>
-            {errorMessage && (
-              <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-                {errorMessage}
-              </p>
-            )}
             <Button type="submit" disabled={isSubmitting} className="w-full bg-sky-500 text-white hover:bg-sky-600">
               {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>

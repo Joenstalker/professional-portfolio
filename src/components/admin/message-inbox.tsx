@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Archive, ArchiveRestore, Mail, MailOpen, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { showErrorAlert, showSuccessToast } from "@/lib/alerts";
 
 interface PortfolioMessage {
   id: string;
@@ -33,11 +34,9 @@ export function MessageInbox() {
   const [messages, setMessages] = React.useState<PortfolioMessage[]>([]);
   const [showArchived, setShowArchived] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   const loadMessages = React.useCallback(async () => {
     setIsLoading(true);
-    setErrorMessage(null);
     try {
       const response = await fetch("/api/admin/messages", { cache: "no-store" });
       const data: unknown = await response.json();
@@ -61,7 +60,10 @@ export function MessageInbox() {
       setMessages(data.messages);
     } catch (error) {
       console.error("Unable to load inbox:", error);
-      setErrorMessage(error instanceof Error ? error.message : "Unable to load messages.");
+      await showErrorAlert(
+        "Could not load inbox",
+        error instanceof Error ? error.message : "Unable to load messages."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +77,6 @@ export function MessageInbox() {
   }, [loadMessages]);
 
   async function updateMessage(id: string, updates: Partial<Pick<PortfolioMessage, "is_read" | "is_archived">>) {
-    setErrorMessage(null);
     try {
       const response = await fetch("/api/admin/messages", {
         method: "PATCH",
@@ -91,9 +92,13 @@ export function MessageInbox() {
         );
       }
       await loadMessages();
+      await showSuccessToast(updates.is_archived === undefined ? "Message status updated" : updates.is_archived ? "Message archived" : "Message restored");
     } catch (error) {
       console.error("Unable to update inbox message:", error);
-      setErrorMessage(error instanceof Error ? error.message : "Unable to update message.");
+      await showErrorAlert(
+        "Could not update message",
+        error instanceof Error ? error.message : "Unable to update message."
+      );
     }
   }
 
@@ -119,12 +124,6 @@ export function MessageInbox() {
           </Button>
         </div>
       </div>
-
-      {errorMessage && (
-        <p role="alert" className="mb-5 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-          {errorMessage}
-        </p>
-      )}
 
       {isLoading ? (
         <div className="rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground">Loading messages...</div>

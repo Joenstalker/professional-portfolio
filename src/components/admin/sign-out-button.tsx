@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { showErrorAlert } from "@/lib/alerts";
 
 export function SignOutButton() {
   const router = useRouter();
@@ -20,6 +21,10 @@ export function SignOutButton() {
       router.refresh();
     } catch (error) {
       console.error("Unable to sign out portfolio admin:", error);
+      await showErrorAlert(
+        "Could not sign out",
+        error instanceof Error ? error.message : "Please try again."
+      );
       setIsSigningOut(false);
     }
   }
