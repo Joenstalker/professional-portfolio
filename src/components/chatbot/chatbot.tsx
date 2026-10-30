@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, X, Send, Bot, User, Loader2 } from "lucide-react";
+import { MessageSquare, X, Send, Bot, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +41,7 @@ function renderInlineMarkdown(text: string, keyPrefix: string): React.ReactNode 
     if (token.startsWith("**") && token.endsWith("**") && token.length > 4) {
       segments.push(
         <strong key={`${keyPrefix}-b-${idx}`} className="font-semibold text-white">
-          {token.slice(2, -2)}
+          {renderInlineMarkdown(token.slice(2, -2), `${keyPrefix}-b-${idx}`)}
         </strong>
       );
     }
@@ -85,49 +85,51 @@ function renderInlineMarkdown(text: string, keyPrefix: string): React.ReactNode 
   return segments;
 }
 
+function renderMessageContent(content: string, keyPrefix: string): React.ReactNode {
+  return content.split(/(!\[.*?\]\(.*?\))/g).map((part, i) => {
+    const imgMatch = part.match(/!\[(.*?)\]\((.*?)\)/);
+    if (imgMatch) {
+      return (
+        <div key={`${keyPrefix}-img-${i}`} className="mt-4 rounded-xl overflow-hidden border border-white/10 shadow-lg">
+          <img
+            src={imgMatch[2]}
+            alt={imgMatch[1]}
+            className="w-full h-auto object-cover max-h-[200px]"
+          />
+        </div>
+      );
+    }
+
+    return (
+      <React.Fragment key={`${keyPrefix}-text-${i}`}>
+        {renderInlineMarkdown(part, `${keyPrefix}-seg-${i}`)}
+      </React.Fragment>
+    );
+  });
+}
+
 const TypewriterMessage = ({ content }: { content: string }) => {
   const [displayedText, setDisplayedText] = React.useState("");
   const [currentIndex, setCurrentIndex] = React.useState(0);
 
   React.useEffect(() => {
-    setDisplayedText("");
-    setCurrentIndex(0);
-  }, [content]);
-
-  React.useEffect(() => {
     if (currentIndex < content.length) {
       const timeout = setTimeout(() => {
-        setDisplayedText((prev) => prev + content[currentIndex]);
-        setCurrentIndex((prev) => prev + 1);
-      }, 5);
+        const nextIndex = Math.min(currentIndex + 4, content.length);
+        setDisplayedText(content.slice(0, nextIndex));
+        setCurrentIndex(nextIndex);
+      }, 20);
       return () => clearTimeout(timeout);
     }
   }, [currentIndex, content]);
 
+  React.useEffect(() => {
+    window.dispatchEvent(new CustomEvent("chat-scroll"));
+  }, [displayedText]);
+
   return (
     <div className="whitespace-pre-wrap">
-      {displayedText.split(/(!\[.*?\]\(.*?\))/g).map((part, i) => {
-        const imgMatch = part.match(/!\[(.*?)\]\((.*?)\)/);
-        if (imgMatch) {
-          return (
-            <div key={i} className="mt-4 rounded-xl overflow-hidden border border-white/10 shadow-lg">
-              <img
-                src={imgMatch[2]}
-                alt={imgMatch[1]}
-                className="w-full h-auto object-cover max-h-[200px]"
-                onLoad={() => {
-                  window.dispatchEvent(new CustomEvent("chat-scroll"));
-                }}
-              />
-            </div>
-          );
-        }
-        return (
-          <React.Fragment key={i}>
-            {renderInlineMarkdown(part, `seg-${i}`)}
-          </React.Fragment>
-        );
-      })}
+      {renderMessageContent(displayedText, "typing")}
     </div>
   );
 };
@@ -136,7 +138,7 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
   const [isOpen, setIsOpen] = React.useState(inline);
   const [input, setInput] = React.useState("");
   const [messages, setMessages] = React.useState<Message[]>([
-    { role: "assistant", content: "Hi! 👋 I'm Joenil's AI Assistant. How can I help you today?" }
+    { role: "assistant", content: "Hi! 👋 I'm Joenil's portfolio assistant. Ask me about his projects, skills, certificates, or how to get in touch." }
   ]);
   const [isLoading, setIsLoading] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -197,10 +199,15 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
             </div>
             <div>
               <h3 className="text-sm font-bold text-white">Portfolio Assistant</h3>
-              <p className="text-[10px] text-sky-400 font-bold uppercase tracking-widest">AI Power</p>
+              <p className="text-[10px] text-sky-400 font-bold uppercase tracking-widest">Portfolio Guide</p>
             </div>
           </div>
-          <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors p-2 -mr-2">
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close portfolio assistant"
+            className="text-slate-400 hover:text-white transition-colors p-2 -mr-2"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -218,6 +225,8 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
             )}>
               {m.role === "assistant" && i === messages.length - 1 ? (
                 <TypewriterMessage content={m.content} />
+              ) : m.role === "assistant" ? (
+                <div className="whitespace-pre-wrap">{renderMessageContent(m.content, `message-${i}`)}</div>
               ) : (
                 <div className="whitespace-pre-wrap">{m.content}</div>
               )}
@@ -233,26 +242,17 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
         )}
       </div>
 
-      {/* Quick Suggestions - Always visible for first message or when idle */}
-      {messages.length === 1 && (
-         <div className="px-6 pb-4 flex flex-wrap gap-2 max-h-[120px] overflow-y-auto scrollbar-hide shrink-0">
+      {/* Keep common visitor questions available throughout the conversation. */}
+      {!isLoading && (
+         <div className="px-6 pb-4 flex flex-wrap gap-2 max-h-[88px] overflow-y-auto scrollbar-hide shrink-0">
             {[
-              "Can I download your CV?",
-              "Show me your location.",
-              "Show me your projects.",
-              "Where is the source code?",
-              "What is the date today?",
-              "Give me a random interview question.",
-              "Does Joenil know React and Laravel?",
-              "Show programming certificates.",
-              "Which projects use Laravel?",
-              "Tell me about TOPCIT.",
-              "Tell me about the Dental Clinic System.",
-              "What tech stack do you use?",
+              "Show me your projects",
+              "What skills do you have?",
+              "Show certificates",
               "How can I contact you?",
+              "Download CV",
               "What services do you offer?",
-              "Do you install CCTV?",
-              "Why should we hire you?"
+              "Does Joenil know React and Laravel?"
             ].map(s => (
                <button 
                   key={s}
@@ -271,10 +271,17 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          aria-label="Ask the portfolio assistant a question"
           placeholder="Type your question..."
           className="flex-1 bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-500/50 transition-colors placeholder:text-slate-600"
         />
-        <Button type="submit" size="icon" disabled={isLoading} className="bg-sky-500 hover:bg-sky-600 rounded-xl h-11 w-11 shrink-0">
+        <Button
+          type="submit"
+          size="icon"
+          disabled={isLoading}
+          aria-label="Send question"
+          className="bg-sky-500 hover:bg-sky-600 rounded-xl h-11 w-11 shrink-0"
+        >
           <Send className="w-4 h-4" />
         </Button>
       </form>

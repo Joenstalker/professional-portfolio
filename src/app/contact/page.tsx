@@ -62,7 +62,7 @@ export default function ContactPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* AI Assistant Column */}
+            {/* Portfolio Assistant Column */}
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -73,7 +73,7 @@ export default function ContactPage() {
                   <div className="p-6 border-b border-border bg-sky-500/5">
                      <h3 className="text-xl font-bold text-foreground flex items-center">
                         <Award className="w-5 h-5 mr-2 text-sky-400" />
-                        AI Assistant
+                        Portfolio Assistant
                      </h3>
                      <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest font-bold">Joenil&apos;s Portfolio Bot</p>
                   </div>
@@ -284,4 +284,3 @@ export default function ContactPage() {
     </main>
   );
 }
-

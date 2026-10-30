@@ -14,11 +14,15 @@ function containsAny(msg: string, keywords: string[]): boolean {
 
 function matchFaq(msg: string): { answer: string } | null {
   const n = normalize(msg);
+  const genericKeywords = new Set(["about", "tell me", "who is", "what is", "what are", "how do", "describe", "yourself"]);
   for (const f of KB.faq) {
     const q = normalize(f.question);
-    if (n.includes(q) || q.includes(n)) return { answer: f.answer };
-    const kwMatch = f.keywords.filter(k => n.includes(normalize(k))).length;
-    if (kwMatch >= 2) return { answer: f.answer };
+    if (n === q || n.includes(q)) return { answer: f.answer };
+    const matchedKeywords = f.keywords.filter(k => {
+      const keyword = normalize(k);
+      return !genericKeywords.has(keyword) && n.includes(keyword);
+    });
+    if (matchedKeywords.length >= 2) return { answer: f.answer };
   }
   return null;
 }
@@ -192,9 +196,18 @@ export async function POST(req: Request) {
     }
 
     // 4) Skills Match Scoring
-    const skillsMatchTrigger =
-      containsAny(msg, ["know react", "know laravel", "know typescript", "know mysql", "familiar with", "does (he|joenil) know", "skill check", "skills match", "does he know these", "does (he|joenil) use", "does he have experience with"]);
-    if (skillsMatchTrigger || (containsAny(msg, ["know", "familiar with", "experience with"]) && extractTechCandidates(msg).length >= 1)) {
+    const skillsMatchTrigger = containsAny(msg, [
+      "familiar with",
+      "does he know",
+      "does joenil know",
+      "does he use",
+      "does joenil use",
+      "does he have experience with",
+      "does joenil have experience with",
+      "skills match",
+      "skill check"
+    ]);
+    if (skillsMatchTrigger) {
       const candidates = extractTechCandidates(msg);
       if (candidates.length > 0) {
         const { known, missing, percent } = scoreSkills(candidates);
@@ -323,18 +336,15 @@ export async function POST(req: Request) {
     }
 
     // ======== Default fallback help message ========
-    response = `I'm Joenil's AI Portfolio Assistant! 🤖 I have access to Joenil's full portfolio data.
+    response = `I don't have a specific answer for that yet, but I can help you explore Joenil's portfolio. You can ask me about:
 
-Here are some things you can ask me about:
-• **About** Joenil - personal info, motto, philosophy, stats, hobbies
-• **Projects** - Dental Clinic MS, Mini Library MS, Robotic Arm, POS System
-• **Certificates** - TOPCIT, Python Essentials 1 & 2, CCNA 1 & 2, Sui DEVCON, Java, Web, DB, IoT, NC2 TESDA
-• **Skills** - Frontend, Backend, Database, IoT, DevOps, Desktop tools
-• **Contact** - email, phone, address, social media (Facebook, GitHub, LinkedIn)
-• **Services** - Web dev, SaaS, POS, CCTV, electrical installation
-• **Download CV** - or "Give me directions", "Show projects page", "Random interview question"
-• **Skills match** - "Does Joenil know React and Laravel?"
-• **Project / cert filters** - "Projects using Laravel?", "Certificates 2026?"`;
+• **Projects** — ask about a specific project or filter by technology
+• **Skills and experience** — ask whether Joenil has used a particular technology
+• **Certificates and achievements** — ask about TOPCIT, Python, CCNA, or other credentials
+• **Contact and services** — ask how to get in touch or what services he offers
+• **CV and location** — ask for the CV download or map directions
+
+Try a suggested question below, or ask in your own words.`;
 
     // =================== PERSONAL / IDENTITY ===================
     if (containsAny(msg, ["who is joenil", "who is he", "about joenil", "tell me about joenil", "who are you"])) {
