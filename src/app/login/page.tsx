@@ -31,12 +31,26 @@ export default function LoginPage() {
 
       const supabase = createSupabaseBrowserClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-      if (signInError) throw new Error("Unable to sign in. Check your email and password.");
+      if (signInError) {
+        console.error("Supabase sign-in failed:", signInError.message);
+        if (signInError.code === "email_not_confirmed") {
+          throw new Error("Confirm this account's email in Supabase Authentication → Users, then try again.");
+        }
+        if (signInError.code === "invalid_credentials") {
+          throw new Error("Supabase rejected this email/password. Use the exact email and password of the user created under Authentication → Users.");
+        }
+        throw new Error(`Supabase sign-in failed: ${signInError.message}`);
+      }
 
       const { data: isAdmin, error: adminError } = await supabase.rpc("is_portfolio_admin");
-      if (adminError || !isAdmin) {
+      if (adminError) {
+        console.error("Unable to verify portfolio admin access:", adminError.message);
         await supabase.auth.signOut();
-        throw new Error("This account is not authorized to access the portfolio inbox.");
+        throw new Error("Could not verify owner access. Run supabase/portfolio-inbox.sql in the Supabase SQL Editor and try again.");
+      }
+      if (!isAdmin) {
+        await supabase.auth.signOut();
+        throw new Error("This account can sign in, but it is not allowlisted as the portfolio owner. Add its Supabase Auth user UUID to public.portfolio_admins.");
       }
 
       router.replace("/admin");
