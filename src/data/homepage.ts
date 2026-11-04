@@ -28,6 +28,17 @@ export interface HomepageContent {
     eventName: string;
     date: string;
     certificateUrl: string;
+    articleUrl: string;
+  };
+}
+
+export function mergeHomepageContent(content: Partial<HomepageContent>): HomepageContent {
+  return {
+    ...defaultHomepageContent,
+    ...content,
+    hero: { ...defaultHomepageContent.hero, ...content.hero },
+    about: { ...defaultHomepageContent.about, ...content.about },
+    achievement: { ...defaultHomepageContent.achievement, ...content.achievement },
   };
 }
 
@@ -61,5 +72,6 @@ export const defaultHomepageContent: HomepageContent = {
     eventName: "14th TOPCIT Philippines",
     date: "July 23, 2026",
     certificateUrl: "/Download%20CV/TOPCIT%20Certificate.pdf",
+    articleUrl: "https://buksu.edu.ph/2026/11/04/five-it-students-attain-proficient-level-in-topcit/",
   },
 };

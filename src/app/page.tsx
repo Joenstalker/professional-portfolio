@@ -62,11 +62,13 @@ export default function Home() {
                 {homepage.achievement.eventName} · {homepage.achievement.date}
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button asChild className="bg-sky-500 text-white hover:bg-sky-600">
-                  <Link href="/certificates">
-                    View Certificates & Achievements <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
+                {homepage.achievement.articleUrl && (
+                  <Button asChild className="bg-sky-500 text-white hover:bg-sky-600">
+                    <Link href={homepage.achievement.articleUrl} target="_blank" rel="noopener noreferrer">
+                      View Announcement <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
                 {homepage.achievement.certificateUrl && (
                   <Button asChild variant="outline" className="border-border text-foreground hover:bg-accent">
                     <Link href={homepage.achievement.certificateUrl} target="_blank">

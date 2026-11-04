@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { defaultHomepageContent, type HomepageContent } from "@/data/homepage";
+import { defaultHomepageContent, mergeHomepageContent, type HomepageContent } from "@/data/homepage";
 import { getPortfolioAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -41,7 +41,8 @@ function isValidHomepageContent(value: unknown): value is HomepageContent {
     validText(achievement.description, 3000) &&
     validText(achievement.eventName, 200) &&
     validText(achievement.date, 100) &&
-    (achievement.certificateUrl === "" || (typeof achievement.certificateUrl === "string" && achievement.certificateUrl.length <= 2048))
+    (achievement.certificateUrl === "" || (typeof achievement.certificateUrl === "string" && achievement.certificateUrl.length <= 2048)) &&
+    (achievement.articleUrl === "" || (typeof achievement.articleUrl === "string" && achievement.articleUrl.length <= 2048))
   );
 }
 
@@ -67,7 +68,7 @@ export async function GET() {
     console.error("Unable to load homepage admin content:", error.message);
     return setupError(error, "load homepage content");
   }
-  return NextResponse.json({ content: data?.content ?? defaultHomepageContent });
+  return NextResponse.json({ content: data?.content ? mergeHomepageContent(data.content as Partial<HomepageContent>) : defaultHomepageContent });
 }
 
 export async function PUT(request: Request) {

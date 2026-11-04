@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { certificates, type Certificate } from "@/data/certificates";
 import { projects } from "@/data/projects";
-import { defaultHomepageContent, type HomepageContent } from "@/data/homepage";
+import { defaultHomepageContent, mergeHomepageContent, type HomepageContent } from "@/data/homepage";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 import type { Project } from "@/types/project";
 
@@ -74,5 +74,5 @@ export async function getPublishedHomepageContent(): Promise<HomepageContent> {
     return defaultHomepageContent;
   }
   if (!data) return defaultHomepageContent;
-  return data.content as HomepageContent;
+  return mergeHomepageContent(data.content as Partial<HomepageContent>);
 }

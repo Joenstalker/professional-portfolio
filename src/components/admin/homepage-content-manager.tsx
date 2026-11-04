@@ -212,6 +212,7 @@ export function HomepageContentManager() {
           <Field label="Achievement image URL"><input required maxLength={2048} value={content.achievement.imageUrl} onChange={(event) => updateAchievement("imageUrl", event.target.value)} className={inputClass} /></Field>
           <ImageUploadButton target="achievement" uploading={uploadingImage === "achievement"} onUpload={uploadImage} />
           <Field label="Certificate document URL (optional)"><input maxLength={2048} value={content.achievement.certificateUrl} onChange={(event) => updateAchievement("certificateUrl", event.target.value)} className={inputClass} /></Field>
+          <Field label="Announcement / website URL (optional)"><input maxLength={2048} value={content.achievement.articleUrl} onChange={(event) => updateAchievement("articleUrl", event.target.value)} className={inputClass} /></Field>
         </fieldset>
 
         <div className="flex justify-end">
