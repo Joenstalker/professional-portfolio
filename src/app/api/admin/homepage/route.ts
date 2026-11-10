@@ -9,10 +9,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isValidHomepageContent(value: unknown): value is HomepageContent {
-  if (!isRecord(value) || !isRecord(value.hero) || !isRecord(value.about) || !isRecord(value.achievement)) return false;
+  if (!isRecord(value) || !isRecord(value.hero) || !isRecord(value.about) || !isRecord(value.achievement) || !isRecord(value.cv)) return false;
   const hero = value.hero;
   const about = value.about;
   const achievement = value.achievement;
+  const cv = value.cv;
   const validText = (candidate: unknown, maxLength: number) =>
     typeof candidate === "string" && candidate.trim().length > 0 && candidate.length <= maxLength;
 
@@ -42,7 +43,9 @@ function isValidHomepageContent(value: unknown): value is HomepageContent {
     validText(achievement.eventName, 200) &&
     validText(achievement.date, 100) &&
     (achievement.certificateUrl === "" || (typeof achievement.certificateUrl === "string" && achievement.certificateUrl.length <= 2048)) &&
-    (achievement.articleUrl === "" || (typeof achievement.articleUrl === "string" && achievement.articleUrl.length <= 2048))
+    (achievement.articleUrl === "" || (typeof achievement.articleUrl === "string" && achievement.articleUrl.length <= 2048)) &&
+    validText(cv.label, 60) &&
+    validText(cv.url, 2048)
   );
 }
 

@@ -30,6 +30,10 @@ export interface HomepageContent {
     certificateUrl: string;
     articleUrl: string;
   };
+  cv: {
+    label: string;
+    url: string;
+  };
 }
 
 export function mergeHomepageContent(content: Partial<HomepageContent>): HomepageContent {
@@ -39,6 +43,7 @@ export function mergeHomepageContent(content: Partial<HomepageContent>): Homepag
     hero: { ...defaultHomepageContent.hero, ...content.hero },
     about: { ...defaultHomepageContent.about, ...content.about },
     achievement: { ...defaultHomepageContent.achievement, ...content.achievement },
+    cv: { ...defaultHomepageContent.cv, ...content.cv },
   };
 }
 
@@ -73,5 +78,9 @@ export const defaultHomepageContent: HomepageContent = {
     date: "July 23, 2026",
     certificateUrl: "/Download%20CV/TOPCIT%20Certificate.pdf",
     articleUrl: "https://buksu.edu.ph/2026/11/04/five-it-students-attain-proficient-level-in-topcit/",
+  },
+  cv: {
+    label: "Download CV",
+    url: "/Download%20CV/Joenil%20Acero%20CV.pdf",
   },
 };

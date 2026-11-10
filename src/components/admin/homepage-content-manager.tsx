@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { ImagePlus, RefreshCw, Save, X } from "lucide-react";
+import { ImagePlus, RefreshCw, Save, X, Upload, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { showErrorAlert, showSuccessToast } from "@/lib/alerts";
 import { defaultHomepageContent, type HomepageContent } from "@/data/homepage";
@@ -18,6 +18,7 @@ export function HomepageContentManager() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
   const [uploadingImage, setUploadingImage] = React.useState<"profile" | "achievement" | null>(null);
+  const [isUploadingCv, setIsUploadingCv] = React.useState(false);
   const [isProfileLibraryOpen, setIsProfileLibraryOpen] = React.useState(false);
   const [profileImages, setProfileImages] = React.useState<LibraryImage[]>([]);
   const [isLibraryLoading, setIsLibraryLoading] = React.useState(false);
@@ -57,6 +58,10 @@ export function HomepageContentManager() {
     setContent((current) => ({ ...current, achievement: { ...current.achievement, [key]: value } }));
   }
 
+  function updateCv<K extends keyof HomepageContent["cv"]>(key: K, value: HomepageContent["cv"][K]) {
+    setContent((current) => ({ ...current, cv: { ...current.cv, [key]: value } }));
+  }
+
   function updateStat(index: number, key: "value" | "label", value: string) {
     setContent((current) => ({
       ...current,
@@ -88,6 +93,27 @@ export function HomepageContentManager() {
       await showErrorAlert("Image upload failed", error instanceof Error ? error.message : "Unable to upload image.");
     } finally {
       setUploadingImage(null);
+    }
+  }
+
+  async function uploadDocument(file: File | undefined) {
+    if (!file) return;
+    const formData = new FormData();
+    formData.set("file", file);
+    formData.set("collection", "homepage");
+    setIsUploadingCv(true);
+    try {
+      const response = await fetch("/api/admin/content/upload", { method: "POST", body: formData });
+      const data: unknown = await response.json();
+      if (!response.ok) throw new Error(readError(data, "CV upload failed."));
+      if (!isRecord(data) || typeof data.documentUrl !== "string") throw new Error("The upload response was invalid.");
+      updateCv("url", data.documentUrl);
+      await showSuccessToast("CV uploaded");
+    } catch (error) {
+      console.error("Unable to upload CV:", error);
+      await showErrorAlert("CV upload failed", error instanceof Error ? error.message : "Unable to upload CV.");
+    } finally {
+      setIsUploadingCv(false);
     }
   }
 
@@ -147,13 +173,13 @@ export function HomepageContentManager() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Homepage & Profile</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Edit the intro, About section, and featured achievement shown on the homepage.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Edit the intro, About section, featured achievement, and Download CV button shown across the site.</p>
           </div>
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={() => void loadContent()} disabled={isLoading}>
               <RefreshCw className="mr-2 h-4 w-4" /> Reload
             </Button>
-            <Button type="submit" disabled={isSaving || uploadingImage !== null}>
+            <Button type="submit" disabled={isSaving || uploadingImage !== null || isUploadingCv}>
               <Save className="mr-2 h-4 w-4" /> {isSaving ? "Saving…" : "Save changes"}
             </Button>
           </div>
@@ -215,8 +241,40 @@ export function HomepageContentManager() {
           <Field label="Announcement / website URL (optional)"><input maxLength={2048} value={content.achievement.articleUrl} onChange={(event) => updateAchievement("articleUrl", event.target.value)} className={inputClass} /></Field>
         </fieldset>
 
+        <fieldset className={fieldsetClass}>
+          <legend className={legendClass}>Download CV button</legend>
+          <p className="text-sm text-muted-foreground">Controls the “Download CV” button shown in the site navigation on every page.</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Button label"><input required maxLength={60} value={content.cv.label} onChange={(event) => updateCv("label", event.target.value)} className={inputClass} /></Field>
+            <Field label="CV file URL"><input required maxLength={2048} value={content.cv.url} onChange={(event) => updateCv("url", event.target.value)} className={inputClass} /></Field>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <label className="inline-flex cursor-pointer items-center rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent">
+              <Upload className="mr-2 h-4 w-4" /> {isUploadingCv ? "Uploading…" : "Upload CV file"}
+              <input
+                type="file"
+                accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                disabled={isUploadingCv}
+                className="sr-only"
+                onChange={(event) => void uploadDocument(event.target.files?.[0])}
+              />
+            </label>
+            {content.cv.url && (
+              <a
+                href={content.cv.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" /> Preview current CV
+              </a>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">Uploading a PDF or Word document (max 5 MB) replaces the download link with the newly uploaded file.</p>
+        </fieldset>
+
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSaving || uploadingImage !== null}>
+          <Button type="submit" disabled={isSaving || uploadingImage !== null || isUploadingCv}>
             <Save className="mr-2 h-4 w-4" /> {isSaving ? "Saving…" : "Save homepage changes"}
           </Button>
         </div>
@@ -363,14 +421,16 @@ function isLibraryImage(value: unknown): value is LibraryImage {
 }
 
 function isHomepageContent(value: unknown): value is HomepageContent {
-  if (!isRecord(value) || !isRecord(value.hero) || !isRecord(value.about) || !isRecord(value.achievement)) return false;
+  if (!isRecord(value) || !isRecord(value.hero) || !isRecord(value.about) || !isRecord(value.achievement) || !isRecord(value.cv)) return false;
   return (
     typeof value.hero.firstName === "string" &&
     typeof value.hero.imageUrl === "string" &&
     typeof value.about.heading === "string" &&
     Array.isArray(value.about.stats) &&
     typeof value.achievement.enabled === "boolean" &&
-    typeof value.achievement.imageUrl === "string"
+    typeof value.achievement.imageUrl === "string" &&
+    typeof value.cv.label === "string" &&
+    typeof value.cv.url === "string"
   );
 }
 

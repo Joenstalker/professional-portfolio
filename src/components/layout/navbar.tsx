@@ -9,6 +9,7 @@ import { Menu, X, Download, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { useVisitCount } from "@/components/analytics/visit-counter";
+import { useHomepageContent } from "@/lib/use-homepage-content";
 
 const navItems = [
   { name: "Home", href: "/" },
@@ -24,6 +25,7 @@ export function Navbar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const { count, unavailable } = useVisitCount();
+  const { cv } = useHomepageContent();
   const [mounted, setMounted] = React.useState(false);
   const formattedCount = count === null ? "—" : new Intl.NumberFormat().format(count);
 
@@ -94,13 +96,13 @@ export function Navbar() {
 
             <div className="hidden lg:block">
               <a 
-                href="/Download%20CV/Joenil%20Acero%20CV.pdf" 
+                href={cv.url} 
                 target="_blank" 
                 rel="noopener noreferrer"
               >
                 <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl px-6">
                   <Download className="mr-2 w-4 h-4" />
-                  Download CV
+                  {cv.label}
                 </Button>
               </a>
             </div>
@@ -142,14 +144,14 @@ export function Navbar() {
             ))}
             <div className="pt-4 pb-2">
                <a 
-                 href="/Download%20CV/Joenil%20Acero%20CV.pdf" 
+                 href={cv.url} 
                  target="_blank" 
                  rel="noopener noreferrer"
                  className="block w-full"
                >
                  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
                     <Download className="mr-2 w-4 h-4" />
-                    Download CV
+                    {cv.label}
                  </Button>
                </a>
             </div>
