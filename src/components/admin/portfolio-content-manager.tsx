@@ -83,7 +83,8 @@ export function PortfolioContentManager() {
       const data: unknown = await response.json();
       if (!response.ok) throw new Error(readError(data, "Unable to import existing content."));
       await loadItems();
-      await showSuccessToast("Existing portfolio content imported");
+      const imported = isRecord(data) && typeof data.imported === "number" ? data.imported : 0;
+      await showSuccessToast(imported > 0 ? `${imported} ${collection} imported` : "Nothing new to import");
     } catch (error) {
       console.error(`Unable to import ${collection}:`, error);
       await showErrorAlert("Import failed", error instanceof Error ? error.message : "Unable to import existing content.");
@@ -142,10 +143,13 @@ export function PortfolioContentManager() {
         </Button>
       </div>
 
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex gap-2 items-center">
         <Button type="button" variant={collection === "projects" ? "default" : "outline"} onClick={() => { setCollection("projects"); setEditing(null); setIsCreating(false); }}>Projects</Button>
         <Button type="button" variant={collection === "certificates" ? "default" : "outline"} onClick={() => { setCollection("certificates"); setEditing(null); setIsCreating(false); }}>Certificates</Button>
-        <Button type="button" variant="outline" className="ml-auto" onClick={() => void loadItems()} disabled={isLoading} aria-label="Refresh content">
+        <Button type="button" variant="outline" className="ml-auto" onClick={() => void importExisting()} disabled={isLoading}>
+          <RefreshCw className="mr-2 h-4 w-4" /> Import missing
+        </Button>
+        <Button type="button" variant="outline" onClick={() => void loadItems()} disabled={isLoading} aria-label="Refresh content">
           <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
         </Button>
       </div>

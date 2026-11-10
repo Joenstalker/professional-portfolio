@@ -50,7 +50,7 @@ function validateContent(collection: Collection, value: unknown): value is Recor
     typeof value.issuer === "string" && value.issuer.trim().length > 0 && value.issuer.length <= 200 &&
     typeof value.date === "string" && value.date.length <= 80 &&
     typeof value.imageUrl === "string" && value.imageUrl.length <= 2048 &&
-    ["Programming", "Web Development", "Database", "IoT", "Blockchain", "Networking"].includes(String(value.category)) &&
+    ["Programming", "Web Development", "Database", "IoT", "Blockchain", "Networking", "Electrical"].includes(String(value.category)) &&
     (value.link === undefined || (typeof value.link === "string" && value.link.length <= 2048)) &&
     (value.showOnCertificatesPage === undefined || typeof value.showOnCertificatesPage === "boolean")
   );
@@ -99,30 +99,32 @@ export async function POST(
   }
 
   if (isRecord(body) && body.action === "import-existing") {
-    const { count, error: countError } = await supabase
-      .from(resolved.table)
-      .select("id", { count: "exact", head: true });
-    if (countError) {
-      console.error(`Unable to check existing ${resolved.collection}:`, countError.message);
-      return contentSetupError(countError, "check existing content");
-    }
-    if (count !== 0) {
-      return NextResponse.json({ error: "Import is only available when this collection is empty." }, { status: 409 });
-    }
     const initial = resolved.collection === "projects" ? projects : certificates;
-    const rows = initial.map((item, index) => ({
-      id: item.id,
-      content: item,
-      is_published: true,
-      is_featured: resolved.collection === "projects" && index < 3,
-      sort_order: index,
-    }));
-    const { error: importError } = await supabase.from(resolved.table).insert(rows);
-    if (importError) {
-      console.error(`Unable to import existing ${resolved.collection}:`, importError.message);
-      return contentSetupError(importError, "import existing content");
+    const { data: existingRows, error: existingError } = await supabase
+      .from(resolved.table)
+      .select("id");
+    if (existingError) {
+      console.error(`Unable to check existing ${resolved.collection}:`, existingError.message);
+      return contentSetupError(existingError, "check existing content");
     }
-    return NextResponse.json({ imported: rows.length });
+    const existingIds = new Set((existingRows ?? []).map((row: { id: string }) => row.id));
+    const rows = initial
+      .filter((item) => !existingIds.has(item.id))
+      .map((item, index) => ({
+        id: item.id,
+        content: item,
+        is_published: true,
+        is_featured: resolved.collection === "projects" && index < 3,
+        sort_order: existingIds.size + index,
+      }));
+    if (rows.length > 0) {
+      const { error: importError } = await supabase.from(resolved.table).insert(rows);
+      if (importError) {
+        console.error(`Unable to import existing ${resolved.collection}:`, importError.message);
+        return contentSetupError(importError, "import existing content");
+      }
+    }
+    return NextResponse.json({ imported: rows.length, skipped: existingIds.size });
   }
 
   if (!isRecord(body) || !validateContent(resolved.collection, body.content)) {
