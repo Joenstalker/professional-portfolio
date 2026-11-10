@@ -40,7 +40,7 @@ function renderInlineMarkdown(text: string, keyPrefix: string): React.ReactNode 
     // **bold**
     if (token.startsWith("**") && token.endsWith("**") && token.length > 4) {
       segments.push(
-        <strong key={`${keyPrefix}-b-${idx}`} className="font-semibold text-white">
+        <strong key={`${keyPrefix}-b-${idx}`} className="font-semibold text-foreground">
           {renderInlineMarkdown(token.slice(2, -2), `${keyPrefix}-b-${idx}`)}
         </strong>
       );
@@ -90,7 +90,7 @@ function renderMessageContent(content: string, keyPrefix: string): React.ReactNo
     const imgMatch = part.match(/!\[(.*?)\]\((.*?)\)/);
     if (imgMatch) {
       return (
-        <div key={`${keyPrefix}-img-${i}`} className="mt-4 rounded-xl overflow-hidden border border-white/10 shadow-lg">
+        <div key={`${keyPrefix}-img-${i}`} className="mt-4 rounded-xl overflow-hidden border border-border shadow-lg">
           <img
             src={imgMatch[2]}
             alt={imgMatch[1]}
@@ -188,25 +188,25 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
   const ChatContent = (
     <div className={cn(
       "flex flex-col overflow-hidden h-full",
-      !inline && "mb-4 w-[calc(100vw-2rem)] sm:w-[400px] h-[500px] max-h-[calc(100dvh-120px)] glass-dark border border-white/10 rounded-2xl shadow-2xl"
+      !inline && "mb-4 w-[calc(100vw-2rem)] sm:w-[400px] h-[500px] max-h-[calc(100dvh-120px)] bg-card/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl"
     )}>
       {/* Header - only if floating */}
       {!inline && (
-        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-sky-500/10 shrink-0">
+        <div className="p-4 border-b border-border flex items-center justify-between bg-sky-500/10 shrink-0">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center">
               <Bot className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Portfolio Assistant</h3>
-              <p className="text-[10px] text-sky-400 font-bold uppercase tracking-widest">Portfolio Guide</p>
+              <h3 className="text-sm font-bold text-foreground">Portfolio Assistant</h3>
+              <p className="text-[10px] text-sky-500 font-bold uppercase tracking-widest">Portfolio Guide</p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => setIsOpen(false)}
             aria-label="Close portfolio assistant"
-            className="text-slate-400 hover:text-white transition-colors p-2 -mr-2"
+            className="text-muted-foreground hover:text-foreground transition-colors p-2 -mr-2"
           >
             <X className="w-5 h-5" />
           </button>
@@ -221,7 +221,7 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
               "max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed",
               m.role === "user" 
                 ? "bg-sky-500 text-white rounded-tr-none" 
-                : "bg-white/5 text-slate-300 border border-white/5 rounded-tl-none"
+                : "bg-muted text-foreground border border-border rounded-tl-none"
             )}>
               {m.role === "assistant" && i === messages.length - 1 ? (
                 <TypewriterMessage content={m.content} />
@@ -235,8 +235,8 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-white/5 p-3 rounded-2xl rounded-tl-none border border-white/5">
-              <Loader2 className="w-4 h-4 text-sky-400 animate-spin" />
+            <div className="bg-muted p-3 rounded-2xl rounded-tl-none border border-border">
+              <Loader2 className="w-4 h-4 text-sky-500 animate-spin" />
             </div>
           </div>
         )}
@@ -257,7 +257,7 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
                <button 
                   key={s}
                   onClick={() => setInput(s)}
-                  className="text-[10px] bg-white/5 hover:bg-white/10 border border-white/5 px-3 py-1.5 rounded-full text-slate-400 hover:text-white transition-all whitespace-nowrap"
+                  className="text-[10px] bg-muted hover:bg-accent border border-border px-3 py-1.5 rounded-full text-muted-foreground hover:text-foreground transition-all whitespace-nowrap"
                >
                   {s}
                </button>
@@ -273,7 +273,7 @@ export function AIChatbot({ inline = false }: AIChatbotProps) {
           onChange={(e) => setInput(e.target.value)}
           aria-label="Ask the portfolio assistant a question"
           placeholder="Type your question..."
-          className="flex-1 bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-500/50 transition-colors placeholder:text-slate-600"
+          className="flex-1 bg-muted border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-sky-500/50 transition-colors placeholder:text-muted-foreground"
         />
         <Button
           type="submit"
