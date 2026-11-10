@@ -18,7 +18,7 @@ type ContentItem = {
 };
 
 const projectCategories: Project["category"][] = ["Fullstack", "Frontend", "Backend", "IoT", "Game Dev", "Desktop"];
-const certificateCategories: Certificate["category"][] = ["Programming", "Web Development", "Database", "IoT", "Blockchain", "Networking"];
+const certificateCategories: Certificate["category"][] = ["Programming", "Web Development", "Database", "IoT", "Blockchain", "Networking", "Electrical"];
 
 function isContentItem(value: unknown): value is ContentItem {
   if (typeof value !== "object" || value === null) return false;

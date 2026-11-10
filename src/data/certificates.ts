@@ -6,7 +6,7 @@ export interface Certificate {
   imageUrl: string;
   link?: string;
   showOnCertificatesPage?: boolean;
-  category: "Programming" | "Web Development" | "Database" | "IoT" | "Blockchain" | "Networking";
+  category: "Programming" | "Web Development" | "Database" | "IoT" | "Blockchain" | "Networking" | "Electrical";
 }
 
 export const certificates: Certificate[] = [
@@ -70,6 +70,16 @@ export const certificates: Certificate[] = [
     date: "2026",
     imageUrl: "/joenils-certss/devcon-cert.png",
     category: "Blockchain"
+  },
+  {
+    id: "tesda-nc2-eim",
+    title: "Certified Electrical Installation and Maintenance NC2",
+    issuer: "TESDA (Technical Education and Skills Development Authority)",
+    date: "",
+    imageUrl: "/certificates/nc2.jpg",
+    link: "/NC2.pdf",
+    showOnCertificatesPage: true,
+    category: "Electrical"
   },
   {
     id: "java-cert",

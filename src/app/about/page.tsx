@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Code, Briefcase, Clock, Heart, Terminal, ExternalLink, Sparkles, ChevronRight, X, ChevronLeft, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { skills } from "@/data/skills";
+import { certificates, type Certificate } from "@/data/certificates";
+import { usePublishedContent } from "@/lib/use-published-content";
 import Link from "next/link";
 
 type HobbyImage = {
@@ -118,6 +120,10 @@ export default function AboutPage() {
   const marqueeSkills = skills.filter(s =>
     ["Frontend", "Backend", "Database", "Tools", "IoT/Hardware", "Deployment"].includes(s.category)
   );
+
+  const publishedCertificates = usePublishedContent<Certificate>("/api/content/certificates", certificates);
+  const nc2Certificate = publishedCertificates.find((cert) => cert.id === "tesda-nc2-eim")
+    ?? certificates.find((cert) => cert.id === "tesda-nc2-eim");
 
   const stats = [
     { icon: <Briefcase className="w-5 h-5" />, value: "10+", label: "Projects Completed" },
@@ -371,19 +377,38 @@ export default function AboutPage() {
                 </div>
                 <h4 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">Certifications &amp; Background</h4>
               </div>
-              <p className="text-muted-foreground leading-[1.75] text-sm sm:text-base">
-                Beyond my technical skills in software development, I hold a{" "}
-                <a
-                  href="/NC2.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center text-sky-400 font-semibold hover:text-sky-300 underline decoration-sky-500/30 decoration-2 underline-offset-4 hover:decoration-sky-400/50 transition-all break-words"
-                >
-                  Certified Electrical Installation and Maintenance NC2 (TESDA)
-                  <ExternalLink className="w-3 h-3 ml-1.5 inline -mt-0.5 opacity-70 shrink-0" />
-                </a>
-                . This unique background bridges the gap between physical infrastructure and digital systems.
-              </p>
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+                {nc2Certificate && (
+                  <a
+                    href={nc2Certificate.link ?? "/NC2.pdf"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 block w-full sm:w-40 aspect-[4/3] sm:aspect-[3/4] overflow-hidden rounded-xl border border-sky-500/15 bg-slate-900 hover:border-sky-500/40 transition-colors"
+                  >
+                    <img
+                      src={nc2Certificate.imageUrl}
+                      alt={nc2Certificate.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "https://placehold.co/600x400/0f172a/38bdf8?text=NC2+Certificate";
+                      }}
+                    />
+                  </a>
+                )}
+                <p className="text-muted-foreground leading-[1.75] text-sm sm:text-base">
+                  Beyond my technical skills in software development, I hold a{" "}
+                  <a
+                    href={nc2Certificate?.link ?? "/NC2.pdf"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-sky-400 font-semibold hover:text-sky-300 underline decoration-sky-500/30 decoration-2 underline-offset-4 hover:decoration-sky-400/50 transition-all break-words"
+                  >
+                    {nc2Certificate?.title ?? "Certified Electrical Installation and Maintenance NC2"}
+                    <ExternalLink className="w-3 h-3 ml-1.5 inline -mt-0.5 opacity-70 shrink-0" />
+                  </a>
+                  {" "}from {nc2Certificate?.issuer ?? "TESDA"}. This unique background bridges the gap between physical infrastructure and digital systems.
+                </p>
+              </div>
             </motion.div>
 
             <motion.div
