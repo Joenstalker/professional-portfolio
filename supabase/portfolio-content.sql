@@ -59,7 +59,7 @@ values (
   'portfolio-media',
   true,
   5242880,
-  array['image/jpeg', 'image/png', 'image/webp']
+  array['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
 )
 on conflict (id) do update
 set public = excluded.public,
